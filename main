@@ -1,0 +1,682 @@
+import React, { useState, useEffect } from 'react';
+import { Trash2, Plus, Calendar, User, Users, RefreshCw, Copy, Check, AlertCircle, History, Lock, Unlock, Edit2 } from 'lucide-react';
+
+const Card = ({ children, className = "" }) => (
+  <div className={`bg-white rounded-xl shadow-sm border border-slate-200 ${className}`}>
+    {children}
+  </div>
+);
+
+const Button = ({ children, onClick, variant = "primary", className = "", disabled = false, title = "" }) => {
+  const baseStyle = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed";
+  const variants = {
+    primary: "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg",
+    secondary: "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50",
+    danger: "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200",
+    ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-700",
+    icon: "p-2 bg-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full border border-transparent hover:border-slate-200"
+  };
+  
+  return (
+    <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`} disabled={disabled} title={title}>
+      {children}
+    </button>
+  );
+};
+
+// New Component for a single shift slot (Main 1, Main 2, etc)
+const ShiftSlot = ({ label, role, person, isLocked, candidates, onChange, onToggleLock, colorTheme = "blue" }) => {
+  const colors = {
+    blue: { bg: "bg-blue-50", border: "border-blue-100", icon: "text-blue-400", lockedBorder: "border-blue-400 bg-blue-100" },
+    orange: { bg: "bg-orange-50", border: "border-orange-100", icon: "text-orange-400", lockedBorder: "border-orange-400 bg-orange-100" },
+    purple: { bg: "bg-purple-50", border: "border-purple-100", icon: "text-purple-400", lockedBorder: "border-purple-400 bg-purple-100" }
+  };
+  
+  const theme = colors[colorTheme];
+  const containerStyle = isLocked ? theme.lockedBorder : theme.border;
+  const bgStyle = isLocked ? theme.lockedBorder : theme.bg;
+
+  return (
+    <div className={`relative p-2 rounded-lg border flex flex-col gap-1 transition-all ${containerStyle} ${bgStyle}`}>
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{label}</span>
+        <button 
+          onClick={onToggleLock}
+          className={`p-1 rounded-full transition-colors ${isLocked ? 'text-slate-700 bg-white/50' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'}`}
+          title={isLocked ? "Unlock slot" : "Lock slot"}
+        >
+          {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+        </button>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <User className={`w-4 h-4 ${theme.icon} shrink-0`} />
+        <select 
+          className="bg-transparent border-none text-sm font-semibold text-slate-700 focus:ring-0 cursor-pointer w-full p-0 truncate"
+          value={person?.id || ""}
+          onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
+        >
+          <option value="" disabled>Select Staff</option>
+          {role === 'floater' && <option value="-1">None (Internal Cover)</option>}
+          {candidates.map(c => (
+             <option key={c.id} value={c.id}>
+               {c.name} {c.roles.includes('junior') ? '(Jnr)' : ''}
+             </option>
+          ))}
+        </select>
+      </div>
+      
+      {person?.roles.includes('junior') && (
+        <span className="text-[9px] text-purple-600 font-bold bg-purple-100/50 px-1 rounded w-fit ml-6">
+          JUNIOR
+        </span>
+      )}
+    </div>
+  );
+};
+
+export default function RotaGenerator() {
+  // State
+  const [staff, setStaff] = useState([
+    { id: 1, name: 'Ver-se Abudar', roles: ['floater'] },
+    { id: 2, name: 'Tim Groves', roles: ['floater'] },
+    { id: 3, name: 'Andy Baxter', roles: ['main', 'floater'] },
+    { id: 4, name: 'Izzy Ross', roles: ['main', 'junior'] },
+    { id: 5, name: 'Titi Obawole', roles: ['main', 'junior'] },
+    { id: 6, name: 'Chibueze Okpara', roles: ['main', 'junior'] },
+    { id: 7, name: 'Simon McClure', roles: ['main'] },
+    { id: 8, name: 'Neil Harper', roles: ['main'] },
+    { id: 9, name: 'Jonathan Palmer', roles: ['main', 'junior'] },
+  ]);
+  
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffRoles, setNewStaffRoles] = useState({ main: true, floater: false, junior: false });
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [rota, setRota] = useState([]);
+  const [history, setHistory] = useState({});
+  const [error, setError] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Clear rota when month changes to prevent confusion with mismatched dates
+  useEffect(() => {
+    setRota([]);
+    setError(null);
+  }, [selectedDate]);
+
+  // Helper: Get Sundays
+  const getSundaysInMonth = (year, month) => {
+    const date = new Date(year, month - 1, 1);
+    const sundays = [];
+    while (date.getDay() !== 0) date.setDate(date.getDate() + 1);
+    while (date.getMonth() === month - 1) {
+      sundays.push(new Date(date));
+      date.setDate(date.getDate() + 7);
+    }
+    return sundays;
+  };
+
+  // Helper: Get Baseline Usage
+  const getBaselineUsage = (currentMonthKey) => {
+    const baseline = {};
+    staff.forEach(s => baseline[s.id] = 0);
+    Object.keys(history).forEach(monthKey => {
+        if (monthKey !== currentMonthKey) {
+            Object.entries(history[monthKey]).forEach(([id, count]) => {
+                baseline[id] = (baseline[id] || 0) + count;
+            });
+        }
+    });
+    return baseline;
+  };
+
+  // --- SLOT MANIPULATION HANDLERS ---
+
+  const handleSlotChange = (shiftIndex, slotKey, staffId) => {
+    const newRota = [...rota];
+    const shift = { ...newRota[shiftIndex] };
+    
+    if (slotKey === 'floater' && staffId === -1) {
+        shift.floater = null;
+        const main1IsFloater = shift.main1?.roles.includes('floater');
+        const main2IsFloater = shift.main2?.roles.includes('floater');
+        shift.coveredBy = main1IsFloater ? shift.main1 : (main2IsFloater ? shift.main2 : { name: 'Manual Override' });
+    } else {
+        const person = staff.find(s => s.id === staffId);
+        shift[slotKey] = person;
+    }
+    
+    newRota[shiftIndex] = shift;
+    setRota(newRota);
+    updateHistoryFromRota(newRota);
+  };
+
+  const toggleLock = (shiftIndex, slotKey) => {
+    const newRota = [...rota];
+    const lockKey = slotKey + 'Locked';
+    newRota[shiftIndex] = { 
+        ...newRota[shiftIndex], 
+        [lockKey]: !newRota[shiftIndex][lockKey] 
+    };
+    setRota(newRota);
+  };
+
+  const updateHistoryFromRota = (currentRota) => {
+      const usage = {};
+      staff.forEach(s => usage[s.id] = 0);
+      currentRota.forEach(r => {
+          if (r.main1) usage[r.main1.id]++;
+          if (r.main2) usage[r.main2.id]++;
+          if (r.floater) usage[r.floater.id]++;
+      });
+      setHistory(prev => ({ ...prev, [selectedDate]: usage }));
+  };
+
+  // --- GENERATION LOGIC ---
+
+  const generateRota = () => {
+    setError(null);
+    const [year, month] = selectedDate.split('-').map(Number);
+    const sundays = getSundaysInMonth(year, month);
+    const baselineUsage = getBaselineUsage(selectedDate);
+    
+    let bestResult = null;
+    let bestStdDev = Infinity;
+    const currentRotaState = rota.length === sundays.length ? rota : [];
+
+    for (let i = 0; i < 50; i++) {
+        try {
+            // Pass month to attemptGenerate to handle monthly alternating rules
+            const result = attemptGenerate(sundays, baselineUsage, currentRotaState, month);
+            
+            // Validation
+            const juniors = staff.filter(s => s.roles.includes('junior'));
+            const juniorConstraintMet = juniors.every(j => result.usage[j.id] >= 2);
+
+            // Constraint: Andy Baxter (ID 3) should ideally be on twice
+            const andy = staff.find(s => s.id === 3);
+            const andyConstraintMet = andy ? result.usage[andy.id] >= 2 : true;
+
+            // Calculate fairness
+            const totalUsage = { ...baselineUsage };
+            Object.entries(result.usage).forEach(([id, count]) => totalUsage[id] = (totalUsage[id] || 0) + count);
+            
+            const values = Object.values(totalUsage);
+            const mean = values.reduce((a, b) => a + b, 0) / values.length;
+            const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
+            const stdDev = Math.sqrt(variance);
+
+            // Prioritize: 1. Junior Min Constraint, 2. Andy Constraint, 3. Fairness
+            const constraintsMet = juniorConstraintMet && andyConstraintMet;
+            const partialConstraintsMet = juniorConstraintMet; // Fallback if we can't meet Andy's
+            
+            if (!bestResult) {
+                bestResult = result;
+                bestStdDev = stdDev;
+            } else if (constraintsMet && !bestResult.constraintsMet) {
+                // Upgrade to a result that meets all constraints
+                bestResult = { ...result, constraintsMet: true };
+                bestStdDev = stdDev;
+            } else if (constraintsMet && stdDev < bestStdDev) {
+                // Optimization within met constraints
+                bestResult = { ...result, constraintsMet: true };
+                bestStdDev = stdDev;
+            } else if (!bestResult.constraintsMet && partialConstraintsMet && stdDev < bestStdDev) {
+                // fallback optimization
+                bestResult = result;
+                bestStdDev = stdDev;
+            }
+        } catch (e) {
+            // console.log(e);
+        }
+    }
+
+    if (bestResult) {
+        setRota(bestResult.rota);
+        setHistory(prev => ({ ...prev, [selectedDate]: bestResult.usage }));
+    } else {
+        try {
+            const fallback = attemptGenerate(sundays, baselineUsage, currentRotaState, month, true);
+            setRota(fallback.rota);
+            setHistory(prev => ({ ...prev, [selectedDate]: fallback.usage }));
+            setError("Constraints couldn't be perfectly met with current locks. Generated best possible match.");
+        } catch (e) {
+            setError("Could not generate. Locked slots might be creating conflicts.");
+        }
+    }
+  };
+
+  const attemptGenerate = (sundays, baselineUsage, currentRota, monthIndex, ignoreConstraints = false) => {
+    const usage = {};
+    staff.forEach(s => usage[s.id] = 0);
+    const tempRota = [];
+
+    // --- ANDY BAXTER RULE (UPDATED) ---
+    // Rule: Never do the same role twice in a month.
+    // If he does Main once, he can only do Floater. 
+    // If he does Floater once, he can only do Main.
+    const andyId = 3;
+    let andyMainCount = 0;
+    let andyFloaterCount = 0;
+
+    const getScore = (person) => {
+        const totalShifts = (baselineUsage[person.id] || 0) + usage[person.id];
+        let score = totalShifts * 20; 
+        
+        if (!ignoreConstraints) {
+            // Junior Rule: Need at least 2
+            if (person.roles.includes('junior') && usage[person.id] < 2) score -= 5000;
+            
+            // Andy Baxter Rule: Need at least 2 (regardless of role type)
+            if (person.id === 3 && usage[person.id] < 2) score -= 5000;
+        }
+        
+        score += Math.random() * 10;
+        return score;
+    };
+
+    sundays.forEach((sunday, idx) => {
+      const existing = currentRota[idx];
+      const isSameDate = existing && existing.date.getDate() === sunday.getDate();
+      
+      const lockedMain1 = (isSameDate && existing.main1Locked) ? existing.main1 : null;
+      const lockedMain2 = (isSameDate && existing.main2Locked) ? existing.main2 : null;
+      const lockedFloater = (isSameDate && existing.floaterLocked) ? existing.floater : null;
+      const isFloaterLocked = isSameDate && existing.floaterLocked;
+
+      // Filter Candidates with Andy Rule applied
+      let mainCandidates = staff.filter(s => {
+          if (!s.roles.includes('main')) return false;
+          // Rule: If Andy has already done 1 main shift this month, he cannot do another.
+          if (s.id === andyId && andyMainCount >= 1) return false;
+          return true;
+      });
+      
+      let floaterCandidates = staff.filter(s => {
+          if (!s.roles.includes('floater')) return false;
+          // Rule: If Andy has already done 1 floater shift this month, he cannot do another.
+          if (s.id === andyId && andyFloaterCount >= 1) return false;
+          return true;
+      });
+
+      // 1. Determine Main 1
+      let main1 = lockedMain1;
+      if (!main1) {
+          const available = mainCandidates.filter(s => s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
+          available.sort((a, b) => getScore(a) - getScore(b));
+          if (available.length === 0) throw new Error("No Main 1 available");
+          main1 = available[0];
+      }
+
+      // 2. Determine Main 2
+      let main2 = lockedMain2;
+      if (!main2) {
+          const available = mainCandidates.filter(s => s.id !== main1.id && s.id !== lockedFloater?.id);
+          available.sort((a, b) => getScore(a) - getScore(b));
+          if (available.length === 0) throw new Error("No Main 2 available");
+          main2 = available[0];
+      }
+
+      // 3. Determine Floater
+      let floater = lockedFloater;
+      let coveredBy = null;
+
+      if (isFloaterLocked) {
+          if (!floater) {
+             const m1F = main1.roles.includes('floater');
+             const m2F = main2.roles.includes('floater');
+             coveredBy = m1F ? main1 : (m2F ? main2 : { name: "External/Manual" });
+          }
+      } else {
+          const main1IsFloater = main1.roles.includes('floater');
+          const main2IsFloater = main2.roles.includes('floater');
+          const isCovered = main1IsFloater || main2IsFloater;
+
+          if (isCovered) {
+              coveredBy = main1IsFloater ? main1 : main2;
+              floater = null;
+          } else {
+              const available = floaterCandidates.filter(s => s.id !== main1.id && s.id !== main2.id);
+              available.sort((a, b) => getScore(a) - getScore(b));
+              if (available.length === 0) throw new Error("No Floater available");
+              floater = available[0];
+          }
+      }
+
+      // Update Counts
+      if (main1) {
+          usage[main1.id]++;
+          if (main1.id === andyId) andyMainCount++;
+      }
+      if (main2) {
+          usage[main2.id]++;
+          if (main2.id === andyId) andyMainCount++;
+      }
+      if (floater) {
+          usage[floater.id]++;
+          if (floater.id === andyId) andyFloaterCount++;
+      }
+
+      tempRota.push({
+        date: sunday,
+        main1,
+        main2,
+        floater,
+        coveredBy,
+        main1Locked: !!lockedMain1,
+        main2Locked: !!lockedMain2,
+        floaterLocked: isFloaterLocked
+      });
+    });
+
+    return { rota: tempRota, usage };
+  };
+
+  // --- STANDARD HELPERS ---
+
+  const addStaff = () => {
+    if (!newStaffName.trim()) return;
+    const roles = [];
+    if (newStaffRoles.main) roles.push('main');
+    if (newStaffRoles.floater) roles.push('floater');
+    if (newStaffRoles.junior) roles.push('junior');
+    if (newStaffRoles.junior && !roles.includes('main')) roles.push('main');
+
+    if (roles.length === 0) {
+      alert("Please select at least one role.");
+      return;
+    }
+    setStaff([...staff, { id: Date.now(), name: newStaffName, roles }]);
+    setNewStaffName('');
+    setNewStaffRoles({ main: true, floater: false, junior: false });
+  };
+
+  const removeStaff = (id) => setStaff(staff.filter(s => s.id !== id));
+  
+  const handleRoleChange = (role) => {
+    setNewStaffRoles(prev => {
+        const newState = { ...prev, [role]: !prev[role] };
+        if (role === 'junior' && newState.junior) return { ...newState, floater: false, main: true };
+        if (role === 'floater' && newState.floater) return { ...newState, junior: false };
+        return newState;
+    });
+  };
+
+  const copyToClipboard = () => {
+    if (!rota.length) return;
+    const text = rota.map(r => {
+        const dateStr = r.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        const base = `${dateStr}: ${r.main1.name} & ${r.main2.name}`;
+        const float = r.floater ? ` + Floater: ${r.floater.name}` : ` (Covered by ${r.coveredBy?.name || 'Internal'})`;
+        return base + float;
+    }).join('\n');
+    
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try { document.execCommand('copy'); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); } 
+    catch (err) {}
+    document.body.removeChild(textArea);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
+      <div className="max-w-6xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+              <Calendar className="w-8 h-8 text-blue-600" />
+              Monthly Rota Generator
+            </h1>
+            <p className="text-slate-500 mt-1">Smart scheduling with lockable slots. Edit manually, lock, then regenerate.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+             <span className="text-sm font-medium text-slate-600 pl-2">Month:</span>
+             <input 
+               type="month" 
+               value={selectedDate}
+               onChange={(e) => setSelectedDate(e.target.value)}
+               className="border-none bg-transparent focus:ring-0 text-slate-800 font-semibold cursor-pointer outline-none"
+             />
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Left Column: Staff Management */}
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="p-5 h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold flex items-center gap-2">
+                  <Users className="w-5 h-5 text-slate-500" />
+                  Staff Pool ({staff.length})
+                </h2>
+              </div>
+              
+              {/* Add Staff Form */}
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Add New Staff</label>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Enter name..."
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={newStaffName}
+                    onChange={(e) => setNewStaffName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addStaff()}
+                  />
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className={`flex flex-col items-center justify-center p-2 rounded border cursor-pointer transition-all ${newStaffRoles.main ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500'}`}>
+                      <input type="checkbox" checked={newStaffRoles.main} onChange={() => handleRoleChange('main')} className="hidden" />
+                      <span className="text-xs font-bold">Main</span>
+                    </label>
+
+                    <label className={`flex flex-col items-center justify-center p-2 rounded border cursor-pointer transition-all ${newStaffRoles.floater ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-white border-slate-200 text-slate-500'}`}>
+                      <input type="checkbox" checked={newStaffRoles.floater} onChange={() => handleRoleChange('floater')} className="hidden" />
+                      <span className="text-xs font-bold">Floater</span>
+                    </label>
+
+                    <label className={`flex flex-col items-center justify-center p-2 rounded border cursor-pointer transition-all ${newStaffRoles.junior ? 'bg-purple-50 border-purple-200 text-purple-700' : 'bg-white border-slate-200 text-slate-500'}`}>
+                      <input type="checkbox" checked={newStaffRoles.junior} onChange={() => handleRoleChange('junior')} className="hidden" />
+                      <span className="text-xs font-bold">Junior</span>
+                    </label>
+                  </div>
+
+                  <Button onClick={addStaff} className="w-full mt-2" variant="secondary">
+                    <Plus className="w-4 h-4" /> Add Person
+                  </Button>
+                </div>
+              </div>
+
+              {/* Staff List */}
+              <div className="flex-1 overflow-y-auto pr-2 space-y-2 max-h-[500px] custom-scrollbar">
+                {staff.map(person => (
+                  <div key={person.id} className="group flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg hover:border-blue-200 transition-colors shadow-sm">
+                    <div>
+                      <div className="flex items-center gap-2">
+                         <div className="font-medium text-slate-800">{person.name}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {person.roles.includes('junior') && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded border border-purple-100 font-medium">Junior</span>}
+                        {person.roles.includes('main') && !person.roles.includes('junior') && <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100 font-medium">Main</span>}
+                        {person.roles.includes('floater') && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded border border-orange-100 font-medium">Floater</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => removeStaff(person.id)} className="text-slate-300 hover:text-red-500 p-2 rounded-full hover:bg-red-50 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column: Rota Output */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-4">
+              <Button onClick={generateRota} className="flex-1 md:flex-none md:min-w-[200px] h-12 text-lg">
+                <RefreshCw className="w-5 h-5" /> 
+                {rota.length > 0 ? "Regenerate (Respect Locks)" : "Generate Schedule"}
+              </Button>
+              {rota.length > 0 && (
+                <Button onClick={copyToClipboard} variant="secondary" className="h-12">
+                  {isCopied ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
+                  {isCopied ? "Copied!" : "Copy Text"}
+                </Button>
+              )}
+            </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Rota Grid */}
+            {rota.length > 0 ? (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+                  {rota.map((shift, idx) => (
+                    <Card key={idx} className="overflow-hidden border-t-4 border-t-blue-500 hover:shadow-md transition-shadow">
+                      <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sunday</p>
+                          <h3 className="text-xl font-bold text-slate-800">
+                            {shift.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}
+                          </h3>
+                        </div>
+                        <div className="bg-blue-100 text-blue-700 font-bold px-3 py-1 rounded text-sm">
+                          Week {idx + 1}
+                        </div>
+                      </div>
+                      
+                      <div className="p-5 space-y-4">
+                        {/* Main Duty Section */}
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            Main Duty (2)
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <ShiftSlot 
+                              label="Main 1"
+                              role="main"
+                              person={shift.main1}
+                              isLocked={shift.main1Locked}
+                              candidates={staff.filter(s => s.roles.includes('main'))}
+                              onChange={(id) => handleSlotChange(idx, 'main1', id)}
+                              onToggleLock={() => toggleLock(idx, 'main1')}
+                              colorTheme="blue"
+                            />
+                            <ShiftSlot 
+                              label="Main 2"
+                              role="main"
+                              person={shift.main2}
+                              isLocked={shift.main2Locked}
+                              candidates={staff.filter(s => s.roles.includes('main'))}
+                              onChange={(id) => handleSlotChange(idx, 'main2', id)}
+                              onToggleLock={() => toggleLock(idx, 'main2')}
+                              colorTheme="blue"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Floater Section */}
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-orange-400"></span>
+                            Floater Duty
+                          </h4>
+                          
+                          {shift.floater ? (
+                            <ShiftSlot 
+                              label="Floater"
+                              role="floater"
+                              person={shift.floater}
+                              isLocked={shift.floaterLocked}
+                              candidates={staff.filter(s => s.roles.includes('floater'))}
+                              onChange={(id) => handleSlotChange(idx, 'floater', id)}
+                              onToggleLock={() => toggleLock(idx, 'floater')}
+                              colorTheme="orange"
+                            />
+                          ) : (
+                            <div className="flex gap-2">
+                                <div className="flex-1 bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex items-start gap-3">
+                                    <div className="mt-0.5"><Check className="w-4 h-4 text-emerald-600" /></div>
+                                    <div>
+                                        <span className="font-semibold text-emerald-800 text-sm block">Covered Internally</span>
+                                        <span className="text-xs text-emerald-600">by {shift.coveredBy?.name} (Main)</span>
+                                    </div>
+                                </div>
+                                {/* Allow user to force a floater even if covered */}
+                                <button 
+                                    onClick={() => handleSlotChange(idx, 'floater', staff.find(s => s.roles.includes('floater'))?.id)} 
+                                    className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg border border-slate-200 transition-colors"
+                                    title="Manually assign a floater"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Stats Section */}
+                <Card className="p-6 bg-slate-800 text-slate-100 border-slate-700">
+                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <History className="w-5 h-5 text-purple-400" />
+                    Accumulated Usage History
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {staff.map((person) => {
+                      const currentMonthCount = (history[selectedDate] || {})[person.id] || 0;
+                      const baselineCount = getBaselineUsage(selectedDate)[person.id] || 0;
+                      const total = currentMonthCount + baselineCount;
+                      const isJunior = person.roles.includes('junior');
+
+                      return (
+                        <div key={person.id} className="flex flex-col justify-between bg-slate-700/50 p-3 rounded border border-slate-700">
+                          <div className="flex justify-between items-start mb-1">
+                             <span className="truncate mr-2 text-sm font-medium text-slate-200">{person.name}</span>
+                             {isJunior && <span className="text-[10px] bg-purple-500/30 text-purple-200 px-1.5 rounded">Jnr</span>}
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                             <div className="flex flex-col">
+                                <span className="text-lg font-bold text-white leading-none">{total}</span>
+                                <span className="text-[10px] text-slate-400">Total Shifts</span>
+                             </div>
+                             {currentMonthCount > 0 && (
+                                 <span className={`text-[10px] px-1.5 py-0.5 rounded border ${person.id === 3 && currentMonthCount < 2 ? 'bg-orange-900/50 text-orange-200 border-orange-800' : 'bg-blue-900/50 text-blue-200 border-blue-800'}`}>
+                                    +{currentMonthCount} this month
+                                 </span>
+                             )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50 text-slate-400">
+                <Calendar className="w-12 h-12 mb-3 opacity-20" />
+                <p className="font-medium">No rota generated for {new Date(selectedDate).toLocaleString('default', { month: 'long' })}</p>
+                <p className="text-sm">Click Generate to create the schedule</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
