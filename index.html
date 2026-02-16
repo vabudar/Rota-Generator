@@ -226,6 +226,10 @@
         .theme-orange.locked { background: var(--orange-100); border-color: var(--orange-400); }
         .theme-orange .icon { color: var(--orange-400); }
 
+        .theme-emerald { background: var(--emerald-50); border-color: var(--emerald-100); }
+        .theme-emerald.locked { background: var(--emerald-100); border-color: var(--emerald-600); }
+        .theme-emerald .icon { color: var(--emerald-600); }
+
         .theme-rose { background: var(--rose-50); border-color: var(--rose-100); }
         .theme-rose.locked { background: var(--rose-100); border-color: var(--rose-600); }
         .theme-rose .icon { color: var(--rose-600); }
@@ -298,7 +302,7 @@
             </button>
         );
 
-        const ShiftSlot = ({ label, person, isLocked, candidates, onChange, onToggleLock, colorTheme = "blue", placeholder = "Select Staff" }) => {
+        const ShiftSlot = ({ label, person, isLocked, candidates, onChange, onToggleLock, colorTheme = "blue", placeholder = "Select Staff", displayValue, subtitle }) => {
             const themeClass = `theme-${colorTheme}`;
             
             return (
@@ -316,7 +320,7 @@
                         <Icons.User className="icon" />
                         <select 
                             className="slot-select"
-                            value={person?.id || ""}
+                            value={displayValue !== undefined ? displayValue : (person?.id || "")}
                             onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
                         >
                             <option value="">{placeholder}</option>
@@ -328,6 +332,7 @@
                             ))}
                         </select>
                     </div>
+                    {subtitle && <div className="text-xs font-bold mt-1 opacity-80 truncate">{subtitle}</div>}
                 </div>
             );
         };
@@ -400,7 +405,6 @@
                             if (r.main1) baseline[r.main1.id] = (baseline[r.main1.id] || 0) + 1;
                             if (r.main2) baseline[r.main2.id] = (baseline[r.main2.id] || 0) + 1;
                             if (r.floater) baseline[r.floater.id] = (baseline[r.floater.id] || 0) + 1;
-                            // Farsi is manual but we still track usage if assigned
                             if (r.farsi) baseline[r.farsi.id] = (baseline[r.farsi.id] || 0) + 1;
                         });
                     }
@@ -429,14 +433,25 @@
                 const newRota = [...rota];
                 const shift = { ...newRota[shiftIndex] };
                 
+                // Update the specific slot
                 if (slotKey === 'floater' && staffId === -1) {
                     shift.floater = null;
-                    const m1F = shift.main1?.roles.includes('floater');
-                    const m2F = shift.main2?.roles.includes('floater');
-                    shift.coveredBy = m1F ? shift.main1 : (m2F ? shift.main2 : { name: 'Internal Cover' });
                 } else {
                     const person = staff.find(s => s.id === staffId);
                     shift[slotKey] = person || null;
+                }
+
+                // Dynamic cover re-calculation for the Floater slot
+                if (!shift.floater) {
+                    const m1F = shift.main1?.roles.includes('floater');
+                    const m2F = shift.main2?.roles.includes('floater');
+                    if (m1F || m2F) {
+                        shift.coveredBy = m1F ? shift.main1 : shift.main2;
+                    } else {
+                        shift.coveredBy = null; // Unassigned
+                    }
+                } else {
+                    shift.coveredBy = null; // Has a dedicated floater
                 }
                 
                 newRota[shiftIndex] = shift;
@@ -459,7 +474,6 @@
                         ? s.roles.filter(r => r !== role)
                         : [...s.roles, role];
                     
-                    // Logic: if junior, must be main. If junior, can't be floater.
                     if (role === 'junior' && !s.roles.includes('junior')) {
                         if (!newRoles.includes('main')) newRoles.push('main');
                         return { ...s, roles: newRoles.filter(r => r !== 'floater') };
@@ -479,12 +493,11 @@
                 let bestStdDev = Infinity;
                 const currentRotaState = rota.length === sundays.length ? rota : [];
 
-                // Attempt 50 times for best distribution
                 for (let i = 0; i < 50; i++) {
                     try {
                         const result = attemptGenerate(sundays, baselineUsage, currentRotaState);
                         const juniors = staff.filter(s => s.roles.includes('junior'));
-                        const constraintsMet = juniors.every(j => result.usage[j.id] >= 1); // Loosened constraint to avoid failure
+                        const constraintsMet = juniors.every(j => result.usage[j.id] >= 1);
 
                         const totalUsage = { ...baselineUsage };
                         Object.entries(result.usage).forEach(([id, count]) => totalUsage[id] = (totalUsage[id] || 0) + count);
@@ -530,7 +543,6 @@
                     const lockedFloater = (isSameDate && existing.floaterLocked) ? existing.floater : null;
                     const isFloaterLocked = isSameDate && existing.floaterLocked;
 
-                    // 1. Main 1
                     let main1 = lockedMain1;
                     if (!main1) {
                         const avail = staff.filter(s => s.roles.includes('main') && s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
@@ -539,7 +551,6 @@
                     }
                     if (main1) usage[main1.id]++;
 
-                    // 2. Main 2
                     let main2 = lockedMain2;
                     if (!main2) {
                         const avail = staff.filter(s => s.roles.includes('main') && s.id !== main1?.id && s.id !== lockedFloater?.id);
@@ -548,7 +559,6 @@
                     }
                     if (main2) usage[main2.id]++;
 
-                    // 3. Floater
                     let floater = lockedFloater;
                     let coveredBy = null;
                     if (!isFloaterLocked) {
@@ -568,7 +578,7 @@
                     tempRota.push({
                         date: sunday,
                         main1, main2, floater, coveredBy,
-                        farsi: isSameDate ? existing.farsi : null, // Preserve Farsi if already selected
+                        farsi: isSameDate ? existing.farsi : null,
                         main1Locked: !!lockedMain1,
                         main2Locked: !!lockedMain2,
                         floaterLocked: isFloaterLocked
@@ -600,7 +610,7 @@
                 const text = rota.map(r => {
                     const dateStr = r.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
                     const dutyText = `${r.main1?.name} & ${r.main2?.name}`;
-                    const floatText = r.floater ? `+ Floater: ${r.floater.name}` : `(Cover by ${r.coveredBy?.name})`;
+                    const floatText = r.floater ? `+ Floater: ${r.floater.name}` : `(Cover by ${r.coveredBy?.name || 'Internal'})`;
                     const farsiText = r.farsi ? ` | Farsi: ${r.farsi.name}` : '';
                     return `${dateStr}: ${dutyText} ${floatText}${farsiText}`;
                 }).join('\n');
@@ -635,7 +645,6 @@
                     </header>
 
                     <div className="main-grid">
-                        {/* Sidebar: Staff */}
                         <div className="flex flex-col gap-6">
                             <Card className="p-5">
                                 <h2 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2" style={{color: 'var(--slate-500)'}}>
@@ -685,7 +694,6 @@
                             </Card>
                         </div>
 
-                        {/* Content: Rota */}
                         <div className="flex flex-col gap-6">
                             <div className="card p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
@@ -755,26 +763,18 @@
                                                     </div>
 
                                                     <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-                                                        <div>
-                                                            {shift.floater ? (
-                                                                <ShiftSlot 
-                                                                    label="Floater"
-                                                                    person={shift.floater}
-                                                                    isLocked={shift.floaterLocked}
-                                                                    candidates={staff.filter(s => s.roles.includes('floater'))}
-                                                                    onChange={(id) => handleSlotChange(idx, 'floater', id)}
-                                                                    onToggleLock={() => toggleLock(idx, 'floater')}
-                                                                    colorTheme="orange"
-                                                                />
-                                                            ) : (
-                                                                <div className="p-3 rounded-lg border flex flex-col justify-center h-full" style={{background: 'var(--emerald-50)', borderColor: 'var(--emerald-100)'}}>
-                                                                    <span className="text-xs uppercase font-bold text-emerald-600">Floater Cover</span>
-                                                                    <span className="text-sm font-bold text-emerald-800 truncate">{shift.coveredBy?.name}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Farsi Slot: Manual Only */}
+                                                        <ShiftSlot 
+                                                            label="Floater"
+                                                            person={shift.floater}
+                                                            displayValue={!shift.floater && shift.coveredBy ? "-1" : (shift.floater?.id || "")}
+                                                            subtitle={!shift.floater && shift.coveredBy ? `By ${shift.coveredBy.name}` : ""}
+                                                            isLocked={shift.floaterLocked}
+                                                            candidates={staff.filter(s => s.roles.includes('floater'))}
+                                                            onChange={(id) => handleSlotChange(idx, 'floater', id)}
+                                                            onToggleLock={() => toggleLock(idx, 'floater')}
+                                                            colorTheme={!shift.floater && shift.coveredBy ? "emerald" : "orange"}
+                                                        />
+                                                        
                                                         <ShiftSlot 
                                                             label="Farsi Speaker"
                                                             person={shift.farsi}
@@ -789,7 +789,6 @@
                                         ))}
                                     </div>
 
-                                    {/* Stats */}
                                     <Card className="p-6" style={{background: 'var(--slate-900)', color: 'white'}}>
                                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                                             <Icons.History className="icon" /> Accumulated Service History
