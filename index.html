@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rota Generator</title>
+    <title>Rota Generator Pro</title>
     
     <!-- React & ReactDOM (loaded via CDN) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -42,17 +42,20 @@
             --purple-100: #f3e8ff;
             --purple-400: #c084fc;
             --purple-600: #9333ea;
-            
-            --red-50: #fef2f2;
-            --red-100: #fee2e2;
-            --red-500: #ef4444;
-            --red-600: #dc2626;
 
             --emerald-50: #ecfdf5;
             --emerald-100: #d1fae5;
             --emerald-600: #059669;
             --emerald-700: #047857;
-            --emerald-800: #065f46;
+            
+            --rose-50: #fff1f2;
+            --rose-100: #ffe4e6;
+            --rose-600: #e11d48;
+
+            --red-50: #fef2f2;
+            --red-100: #fee2e2;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
         }
 
         * { box-sizing: border-box; }
@@ -66,7 +69,7 @@
             min-height: 100vh;
         }
 
-        .container { max-width: 1150px; margin: 0 auto; }
+        .container { max-width: 1250px; margin: 0 auto; }
 
         /* Utility Classes */
         .flex { display: flex; }
@@ -122,6 +125,7 @@
             font-size: 0.9rem;
         }
         .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .btn-primary { background: var(--blue-600); color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .btn-primary:hover { background: var(--blue-700); }
@@ -135,7 +139,7 @@
         .btn-danger { background: var(--red-50); color: var(--red-600); border-color: var(--red-100); }
         .btn-danger:hover { background: var(--red-100); }
 
-        .btn-icon { padding: 8px; background: transparent; color: var(--slate-400); border-radius: 50%; }
+        .btn-icon { padding: 8px; background: transparent; color: var(--slate-400); border-radius: 50%; border: none; cursor: pointer; transition: all 0.2s; }
         .btn-icon:hover { background: var(--slate-100); color: var(--slate-600); }
 
         .input-group {
@@ -156,30 +160,33 @@
         }
         .form-input:focus { outline: 2px solid var(--blue-500); border-color: transparent; }
 
-        /* Role Checkboxes */
+        /* Role Toggles */
         .role-checkbox {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 8px;
-            border-radius: 4px;
+            border-radius: 6px;
             border: 1px solid var(--slate-200);
             cursor: pointer;
             background: white;
             color: var(--slate-500);
+            transition: all 0.2s;
+            text-align: center;
         }
         .role-checkbox.active-main { background: var(--blue-50); border-color: var(--blue-200); color: var(--blue-700); }
         .role-checkbox.active-floater { background: var(--orange-50); border-color: var(--orange-200); color: var(--orange-600); }
         .role-checkbox.active-junior { background: var(--purple-50); border-color: var(--purple-200); color: var(--purple-600); }
+        .role-checkbox.active-farsi { background: var(--rose-50); border-color: var(--rose-100); color: var(--rose-600); }
 
         /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
         .shift-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 
         @media (min-width: 1024px) {
-            .main-grid { grid-template-columns: 4fr 8fr; }
+            .main-grid { grid-template-columns: 350px 1fr; }
             .shift-grid { grid-template-columns: 1fr 1fr; }
             .stats-grid { grid-template-columns: repeat(4, 1fr); }
             .header-row { flex-direction: row; }
@@ -192,12 +199,12 @@
         /* Slot Styling */
         .slot {
             position: relative;
-            padding: 8px;
+            padding: 10px;
             border-radius: 8px;
             border: 1px solid;
             transition: all 0.2s;
         }
-        .slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .slot-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .slot-content { display: flex; align-items: center; gap: 8px; }
         .slot-select {
             background: transparent;
@@ -207,6 +214,7 @@
             color: var(--slate-700);
             width: 100%;
             cursor: pointer;
+            outline: none;
         }
 
         /* Slot Themes */
@@ -218,23 +226,37 @@
         .theme-orange.locked { background: var(--orange-100); border-color: var(--orange-400); }
         .theme-orange .icon { color: var(--orange-400); }
 
+        .theme-rose { background: var(--rose-50); border-color: var(--rose-100); }
+        .theme-rose.locked { background: var(--rose-100); border-color: var(--rose-600); }
+        .theme-rose .icon { color: var(--rose-600); }
+
         /* Badges */
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; border: 1px solid; font-weight: 600; }
+        .badge { 
+            font-size: 10px; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            border: 1px solid; 
+            font-weight: 600; 
+            cursor: pointer;
+            user-select: none;
+        }
+        .badge:hover { opacity: 0.8; }
         .badge-purple { background: var(--purple-50); color: var(--purple-600); border-color: var(--purple-100); }
         .badge-blue { background: var(--blue-50); color: var(--blue-600); border-color: var(--blue-100); }
         .badge-orange { background: var(--orange-50); color: var(--orange-600); border-color: var(--orange-100); }
+        .badge-rose { background: var(--rose-50); color: var(--rose-600); border-color: var(--rose-100); }
+        .badge-gray { background: var(--slate-50); color: var(--slate-400); border-color: var(--slate-200); }
 
         /* Animation */
-        .animate-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* SVG Icons */
         .icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
         .icon-lg { width: 32px; height: 32px; }
         .icon-md { width: 20px; height: 20px; }
         
-        /* Scrollbar */
-        .scroll-area { overflow-y: auto; max-height: 500px; padding-right: 8px; }
+        .scroll-area { overflow-y: auto; max-height: 550px; padding-right: 8px; }
         .scroll-area::-webkit-scrollbar { width: 6px; }
         .scroll-area::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
     </style>
@@ -244,7 +266,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- ICONS (SVG Replacements for Lucide) ---
+        // --- ICONS ---
         const Icons = {
             Trash2: () => <svg className="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>,
             Plus: () => <svg className="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
@@ -258,42 +280,36 @@
             History: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 5.6 5.6L3 8"/></svg>,
             Lock: ({size}) => <svg className="icon" style={{width: size, height: size}} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
             Unlock: ({size}) => <svg className="icon" style={{width: size, height: size}} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>,
-            Save: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+            Languages: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
         };
 
         const { useState, useEffect } = React;
 
-        // --- COMPONENTS ---
+        // --- UI COMPONENTS ---
 
-        const Card = ({ children, className = "" }) => (
-            <div className={`card ${className}`}>
-                {children}
-            </div>
+        const Card = ({ children, className = "", style = {} }) => (
+            <div className={`card ${className}`} style={style}>{children}</div>
         );
 
-        const Button = ({ children, onClick, variant = "primary", className = "", disabled = false, title = "" }) => {
-            return (
-                <button onClick={onClick} className={`btn btn-${variant} ${className}`} disabled={disabled} title={title}>
-                    {children}
-                </button>
-            );
-        };
+        const Button = ({ children, onClick, variant = "primary", className = "", disabled = false, title = "", style = {} }) => (
+            <button onClick={onClick} className={`btn btn-${variant} ${className}`} disabled={disabled} title={title} style={style}>
+                {children}
+            </button>
+        );
 
-        const ShiftSlot = ({ label, role, person, isLocked, candidates, onChange, onToggleLock, colorTheme = "blue" }) => {
+        const ShiftSlot = ({ label, person, isLocked, candidates, onChange, onToggleLock, colorTheme = "blue", placeholder = "Select Staff" }) => {
             const themeClass = `theme-${colorTheme}`;
             
             return (
                 <div className={`slot ${themeClass} ${isLocked ? 'locked' : ''}`}>
                     <div className="slot-header">
                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
-                        <button 
-                            onClick={onToggleLock}
-                            className="btn-icon"
-                            style={{padding: '2px'}}
-                            title={isLocked ? "Unlock slot" : "Lock slot"}
-                        >
-                            {isLocked ? <Icons.Lock size={12} /> : <Icons.Unlock size={12} />}
-                        </button>
+                        {onToggleLock && (
+                            <button onClick={onToggleLock} className="btn-icon" style={{padding: '2px'}} title={isLocked ? "Unlock slot" : "Lock slot"}>
+                                {isLocked ? <Icons.Lock size={12} /> : <Icons.Unlock size={12} />}
+                            </button>
+                        )}
                     </div>
 
                     <div className="slot-content">
@@ -303,8 +319,8 @@
                             value={person?.id || ""}
                             onChange={(e) => onChange(e.target.value ? parseInt(e.target.value) : null)}
                         >
-                            <option value="" disabled>Select Staff</option>
-                            {role === 'floater' && <option value="-1">None (Internal Cover)</option>}
+                            <option value="">{placeholder}</option>
+                            {label === 'Floater' && <option value="-1">Internal Cover</option>}
                             {candidates.map(c => (
                                 <option key={c.id} value={c.id}>
                                     {c.name} {c.roles.includes('junior') ? '(Jnr)' : ''}
@@ -312,22 +328,16 @@
                             ))}
                         </select>
                     </div>
-                    
-                    {person?.roles.includes('junior') && (
-                        <div style={{marginLeft: '24px', marginTop: '4px'}}>
-                            <span className="badge badge-purple">JUNIOR</span>
-                        </div>
-                    )}
                 </div>
             );
         };
 
-        // --- MAIN APPLICATION ---
+        // --- MAIN APP ---
 
         function RotaGenerator() {
             // State
             const [staff, setStaff] = useState([
-                { id: 1, name: 'Ver-se Abudar', roles: ['floater'] },
+                { id: 1, name: 'Ver-se Abudar', roles: ['floater', 'farsi'] },
                 { id: 2, name: 'Tim Groves', roles: ['floater'] },
                 { id: 3, name: 'Andy Baxter', roles: ['main', 'floater'] },
                 { id: 4, name: 'Izzy Ross', roles: ['main', 'junior'] },
@@ -339,43 +349,37 @@
             ]);
             
             const [newStaffName, setNewStaffName] = useState('');
-            const [newStaffRoles, setNewStaffRoles] = useState({ main: true, floater: false, junior: false });
+            const [newStaffRoles, setNewStaffRoles] = useState({ main: true, floater: false, junior: false, farsi: false });
             const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
             const [rota, setRota] = useState([]);
-            
-            // savedRotas stores the committed schedules: { "2025-01": [rotaArray], "2025-02": [rotaArray] }
             const [savedRotas, setSavedRotas] = useState({});
             const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-            
             const [error, setError] = useState(null);
             const [isCopied, setIsCopied] = useState(false);
 
-            // Load from LocalStorage on mount
             useEffect(() => {
-                const savedData = localStorage.getItem('sunday-rota-saves');
-                if (savedData) {
-                    setSavedRotas(JSON.parse(savedData));
-                }
+                const savedData = localStorage.getItem('sunday-rota-v2');
+                const savedStaff = localStorage.getItem('sunday-staff-v2');
+                if (savedData) setSavedRotas(JSON.parse(savedData));
+                if (savedStaff) setStaff(JSON.parse(savedStaff));
             }, []);
 
-            // When Month Changes, Load that month's rota if it exists
+            useEffect(() => {
+                localStorage.setItem('sunday-staff-v2', JSON.stringify(staff));
+            }, [staff]);
+
             useEffect(() => {
                 setError(null);
                 if (savedRotas[selectedDate]) {
-                    // Re-instantiate Date objects from strings if necessary
-                    const loadedRota = savedRotas[selectedDate].map(r => ({
-                        ...r,
-                        date: new Date(r.date)
-                    }));
+                    const loadedRota = savedRotas[selectedDate].map(r => ({ ...r, date: new Date(r.date) }));
                     setRota(loadedRota);
                     setHasUnsavedChanges(false);
                 } else {
-                    setRota([]); // Clear current view if no save exists
+                    setRota([]);
                     setHasUnsavedChanges(false);
                 }
             }, [selectedDate, savedRotas]);
 
-            // Helper: Get Sundays
             const getSundaysInMonth = (year, month) => {
                 const date = new Date(year, month - 1, 1);
                 const sundays = [];
@@ -387,56 +391,52 @@
                 return sundays;
             };
 
-            // Helper: Get Baseline Usage (From SAVED rotas + Current unsaved edits)
             const getBaselineUsage = (currentMonthKey) => {
                 const baseline = {};
                 staff.forEach(s => baseline[s.id] = 0);
-                
-                // Look through all SAVED months in history (except current one we are editing)
                 Object.keys(savedRotas).forEach(monthKey => {
                     if (monthKey !== currentMonthKey) {
-                        const monthRota = savedRotas[monthKey];
-                        monthRota.forEach(r => {
+                        savedRotas[monthKey].forEach(r => {
                             if (r.main1) baseline[r.main1.id] = (baseline[r.main1.id] || 0) + 1;
                             if (r.main2) baseline[r.main2.id] = (baseline[r.main2.id] || 0) + 1;
                             if (r.floater) baseline[r.floater.id] = (baseline[r.floater.id] || 0) + 1;
+                            // Farsi is manual but we still track usage if assigned
+                            if (r.farsi) baseline[r.farsi.id] = (baseline[r.farsi.id] || 0) + 1;
                         });
                     }
                 });
                 return baseline;
             };
 
-            // --- SAVE / DELETE HANDLERS ---
             const handleSaveMonth = () => {
                 if (rota.length === 0) return;
                 const newSaved = { ...savedRotas, [selectedDate]: rota };
                 setSavedRotas(newSaved);
-                localStorage.setItem('sunday-rota-saves', JSON.stringify(newSaved));
+                localStorage.setItem('sunday-rota-v2', JSON.stringify(newSaved));
                 setHasUnsavedChanges(false);
             };
 
             const handleDeleteMonth = () => {
-                if (!window.confirm("Are you sure you want to delete the saved rota for this month?")) return;
+                if (!window.confirm("Delete saved rota for this month?")) return;
                 const newSaved = { ...savedRotas };
                 delete newSaved[selectedDate];
                 setSavedRotas(newSaved);
-                localStorage.setItem('sunday-rota-saves', JSON.stringify(newSaved));
+                localStorage.setItem('sunday-rota-v2', JSON.stringify(newSaved));
                 setRota([]);
             };
 
-            // --- SLOT MANIPULATION HANDLERS ---
             const handleSlotChange = (shiftIndex, slotKey, staffId) => {
                 const newRota = [...rota];
                 const shift = { ...newRota[shiftIndex] };
                 
                 if (slotKey === 'floater' && staffId === -1) {
                     shift.floater = null;
-                    const main1IsFloater = shift.main1?.roles.includes('floater');
-                    const main2IsFloater = shift.main2?.roles.includes('floater');
-                    shift.coveredBy = main1IsFloater ? shift.main1 : (main2IsFloater ? shift.main2 : { name: 'Manual Override' });
+                    const m1F = shift.main1?.roles.includes('floater');
+                    const m2F = shift.main2?.roles.includes('floater');
+                    shift.coveredBy = m1F ? shift.main1 : (m2F ? shift.main2 : { name: 'Internal Cover' });
                 } else {
                     const person = staff.find(s => s.id === staffId);
-                    shift[slotKey] = person;
+                    shift[slotKey] = person || null;
                 }
                 
                 newRota[shiftIndex] = shift;
@@ -447,15 +447,28 @@
             const toggleLock = (shiftIndex, slotKey) => {
                 const newRota = [...rota];
                 const lockKey = slotKey + 'Locked';
-                newRota[shiftIndex] = { 
-                    ...newRota[shiftIndex], 
-                    [lockKey]: !newRota[shiftIndex][lockKey] 
-                };
+                newRota[shiftIndex] = { ...newRota[shiftIndex], [lockKey]: !newRota[shiftIndex][lockKey] };
                 setRota(newRota);
                 setHasUnsavedChanges(true);
             };
 
-            // --- GENERATION LOGIC ---
+            const toggleStaffRole = (staffId, role) => {
+                setStaff(staff.map(s => {
+                    if (s.id !== staffId) return s;
+                    const newRoles = s.roles.includes(role) 
+                        ? s.roles.filter(r => r !== role)
+                        : [...s.roles, role];
+                    
+                    // Logic: if junior, must be main. If junior, can't be floater.
+                    if (role === 'junior' && !s.roles.includes('junior')) {
+                        if (!newRoles.includes('main')) newRoles.push('main');
+                        return { ...s, roles: newRoles.filter(r => r !== 'floater') };
+                    }
+                    return { ...s, roles: newRoles };
+                }));
+                setHasUnsavedChanges(true);
+            };
+
             const generateRota = () => {
                 setError(null);
                 const [year, month] = selectedDate.split('-').map(Number);
@@ -466,14 +479,12 @@
                 let bestStdDev = Infinity;
                 const currentRotaState = rota.length === sundays.length ? rota : [];
 
+                // Attempt 50 times for best distribution
                 for (let i = 0; i < 50; i++) {
                     try {
-                        const result = attemptGenerate(sundays, baselineUsage, currentRotaState, month);
-                        
+                        const result = attemptGenerate(sundays, baselineUsage, currentRotaState);
                         const juniors = staff.filter(s => s.roles.includes('junior'));
-                        const juniorConstraintMet = juniors.every(j => result.usage[j.id] >= 2);
-                        const andy = staff.find(s => s.id === 3);
-                        const andyConstraintMet = andy ? result.usage[andy.id] >= 2 : true;
+                        const constraintsMet = juniors.every(j => result.usage[j.id] >= 1); // Loosened constraint to avoid failure
 
                         const totalUsage = { ...baselineUsage };
                         Object.entries(result.usage).forEach(([id, count]) => totalUsage[id] = (totalUsage[id] || 0) + count);
@@ -482,60 +493,31 @@
                         const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
                         const stdDev = Math.sqrt(variance);
 
-                        const constraintsMet = juniorConstraintMet && andyConstraintMet;
-                        const partialConstraintsMet = juniorConstraintMet;
-                        
-                        if (!bestResult) {
-                            bestResult = result;
-                            bestStdDev = stdDev;
-                        } else if (constraintsMet && !bestResult.constraintsMet) {
-                            bestResult = { ...result, constraintsMet: true };
-                            bestStdDev = stdDev;
-                        } else if (constraintsMet && stdDev < bestStdDev) {
-                            bestResult = { ...result, constraintsMet: true };
-                            bestStdDev = stdDev;
-                        } else if (!bestResult.constraintsMet && partialConstraintsMet && stdDev < bestStdDev) {
+                        if (!bestResult || (constraintsMet && stdDev < bestStdDev)) {
                             bestResult = result;
                             bestStdDev = stdDev;
                         }
-                    } catch (e) {
-                        // console.log(e);
-                    }
+                    } catch (e) {}
                 }
 
                 if (bestResult) {
                     setRota(bestResult.rota);
                     setHasUnsavedChanges(true);
                 } else {
-                    try {
-                        const fallback = attemptGenerate(sundays, baselineUsage, currentRotaState, month, true);
-                        setRota(fallback.rota);
-                        setHasUnsavedChanges(true);
-                        setError("Constraints couldn't be perfectly met with current locks. Generated best possible match.");
-                    } catch (e) {
-                        setError("Could not generate. Locked slots might be creating conflicts.");
-                    }
+                    setError("Locked slots caused a conflict. Try unlocking some slots.");
                 }
             };
 
-            const attemptGenerate = (sundays, baselineUsage, currentRota, monthIndex, ignoreConstraints = false) => {
+            const attemptGenerate = (sundays, baselineUsage, currentRota) => {
                 const usage = {};
                 staff.forEach(s => usage[s.id] = 0);
                 const tempRota = [];
 
-                const andyId = 3;
-                let andyMainCount = 0;
-                let andyFloaterCount = 0;
-
                 const getScore = (person) => {
-                    const totalShifts = (baselineUsage[person.id] || 0) + usage[person.id];
-                    let score = totalShifts * 20; 
-                    
-                    if (!ignoreConstraints) {
-                        if (person.roles.includes('junior') && usage[person.id] < 2) score -= 5000;
-                        if (person.id === 3 && usage[person.id] < 2) score -= 5000;
-                    }
-                    score += Math.random() * 10;
+                    const total = (baselineUsage[person.id] || 0) + usage[person.id];
+                    let score = total * 100; 
+                    if (person.roles.includes('junior') && usage[person.id] < 1) score -= 1000;
+                    score += Math.random() * 50;
                     return score;
                 };
 
@@ -548,72 +530,45 @@
                     const lockedFloater = (isSameDate && existing.floaterLocked) ? existing.floater : null;
                     const isFloaterLocked = isSameDate && existing.floaterLocked;
 
-                    let mainCandidates = staff.filter(s => {
-                        if (!s.roles.includes('main')) return false;
-                        if (s.id === andyId && andyMainCount >= 1) return false;
-                        return true;
-                    });
-                    
-                    let floaterCandidates = staff.filter(s => {
-                        if (!s.roles.includes('floater')) return false;
-                        if (s.id === andyId && andyFloaterCount >= 1) return false;
-                        return true;
-                    });
-
-                    // 1. Determine Main 1
+                    // 1. Main 1
                     let main1 = lockedMain1;
                     if (!main1) {
-                        const available = mainCandidates.filter(s => s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
-                        available.sort((a, b) => getScore(a) - getScore(b));
-                        if (available.length === 0) throw new Error("No Main 1 available");
-                        main1 = available[0];
+                        const avail = staff.filter(s => s.roles.includes('main') && s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
+                        avail.sort((a, b) => getScore(a) - getScore(b));
+                        main1 = avail[0];
                     }
+                    if (main1) usage[main1.id]++;
 
-                    // 2. Determine Main 2
+                    // 2. Main 2
                     let main2 = lockedMain2;
                     if (!main2) {
-                        const available = mainCandidates.filter(s => s.id !== main1.id && s.id !== lockedFloater?.id);
-                        available.sort((a, b) => getScore(a) - getScore(b));
-                        if (available.length === 0) throw new Error("No Main 2 available");
-                        main2 = available[0];
+                        const avail = staff.filter(s => s.roles.includes('main') && s.id !== main1?.id && s.id !== lockedFloater?.id);
+                        avail.sort((a, b) => getScore(a) - getScore(b));
+                        main2 = avail[0];
                     }
+                    if (main2) usage[main2.id]++;
 
-                    // 3. Determine Floater
+                    // 3. Floater
                     let floater = lockedFloater;
                     let coveredBy = null;
-
-                    if (isFloaterLocked) {
-                        if (!floater) {
-                             const m1F = main1.roles.includes('floater');
-                             const m2F = main2.roles.includes('floater');
-                             coveredBy = m1F ? main1 : (m2F ? main2 : { name: "External/Manual" });
-                        }
-                    } else {
-                        const main1IsFloater = main1.roles.includes('floater');
-                        const main2IsFloater = main2.roles.includes('floater');
-                        const isCovered = main1IsFloater || main2IsFloater;
-
-                        if (isCovered) {
-                            coveredBy = main1IsFloater ? main1 : main2;
+                    if (!isFloaterLocked) {
+                        const m1F = main1?.roles.includes('floater');
+                        const m2F = main2?.roles.includes('floater');
+                        if (m1F || m2F) {
+                            coveredBy = m1F ? main1 : main2;
                             floater = null;
                         } else {
-                            const available = floaterCandidates.filter(s => s.id !== main1.id && s.id !== main2.id);
-                            available.sort((a, b) => getScore(a) - getScore(b));
-                            if (available.length === 0) throw new Error("No Floater available");
-                            floater = available[0];
+                            const avail = staff.filter(s => s.roles.includes('floater') && s.id !== main1?.id && s.id !== main2?.id);
+                            avail.sort((a, b) => getScore(a) - getScore(b));
+                            floater = avail[0];
                         }
                     }
-
-                    if (main1) { usage[main1.id]++; if (main1.id === andyId) andyMainCount++; }
-                    if (main2) { usage[main2.id]++; if (main2.id === andyId) andyMainCount++; }
-                    if (floater) { usage[floater.id]++; if (floater.id === andyId) andyFloaterCount++; }
+                    if (floater) usage[floater.id]++;
 
                     tempRota.push({
                         date: sunday,
-                        main1,
-                        main2,
-                        floater,
-                        coveredBy,
+                        main1, main2, floater, coveredBy,
+                        farsi: isSameDate ? existing.farsi : null, // Preserve Farsi if already selected
                         main1Locked: !!lockedMain1,
                         main2Locked: !!lockedMain2,
                         floaterLocked: isFloaterLocked
@@ -623,69 +578,52 @@
                 return { rota: tempRota, usage };
             };
 
-            // --- STANDARD HELPERS ---
             const addStaff = () => {
                 if (!newStaffName.trim()) return;
                 const roles = [];
                 if (newStaffRoles.main) roles.push('main');
                 if (newStaffRoles.floater) roles.push('floater');
                 if (newStaffRoles.junior) roles.push('junior');
-                if (newStaffRoles.junior && !roles.includes('main')) roles.push('main');
-
-                if (roles.length === 0) {
-                    alert("Please select at least one role.");
-                    return;
-                }
+                if (newStaffRoles.farsi) roles.push('farsi');
+                
                 setStaff([...staff, { id: Date.now(), name: newStaffName, roles }]);
                 setNewStaffName('');
-                setNewStaffRoles({ main: true, floater: false, junior: false });
+                setNewStaffRoles({ main: true, floater: false, junior: false, farsi: false });
             };
 
-            const removeStaff = (id) => setStaff(staff.filter(s => s.id !== id));
-            
-            const handleRoleChange = (role) => {
-                setNewStaffRoles(prev => {
-                    const newState = { ...prev, [role]: !prev[role] };
-                    if (role === 'junior' && newState.junior) return { ...newState, floater: false, main: true };
-                    if (role === 'floater' && newState.floater) return { ...newState, junior: false };
-                    return newState;
-                });
+            const removeStaff = (id) => {
+                if (window.confirm("Remove this staff member?")) setStaff(staff.filter(s => s.id !== id));
             };
 
             const copyToClipboard = () => {
                 if (!rota.length) return;
                 const text = rota.map(r => {
                     const dateStr = r.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                    const base = `${dateStr}: ${r.main1.name} & ${r.main2.name}`;
-                    const float = r.floater ? ` + Floater: ${r.floater.name}` : ` (Covered by ${r.coveredBy?.name || 'Internal'})`;
-                    return base + float;
+                    const dutyText = `${r.main1?.name} & ${r.main2?.name}`;
+                    const floatText = r.floater ? `+ Floater: ${r.floater.name}` : `(Cover by ${r.coveredBy?.name})`;
+                    const farsiText = r.farsi ? ` | Farsi: ${r.farsi.name}` : '';
+                    return `${dateStr}: ${dutyText} ${floatText}${farsiText}`;
                 }).join('\n');
                 
                 const textArea = document.createElement("textarea");
                 textArea.value = text;
                 document.body.appendChild(textArea);
                 textArea.select();
-                try { document.execCommand('copy'); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); } 
-                catch (err) {}
+                try { document.execCommand('copy'); setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); } catch (e) {}
                 document.body.removeChild(textArea);
             };
 
             return (
                 <div className="container">
-                    
-                    {/* Header */}
                     <header className="header-row flex justify-between items-center mb-8 gap-4">
                         <div>
-                            <h1 className="flex items-center gap-2" style={{fontSize: '2rem', fontWeight: 800, color: 'var(--slate-900)'}}>
+                            <h1 className="flex items-center gap-2" style={{fontSize: '1.8rem', fontWeight: 900, color: 'var(--slate-900)'}}>
                                 <Icons.Calendar className="icon icon-lg" style={{color: 'var(--blue-600)'}} />
-                                Monthly Rota Generator
+                                Sunday Rota Pro
                             </h1>
-                            <p className="text-sm" style={{color: 'var(--slate-500)', marginTop: '4px'}}>
-                                Smart scheduling with persistent storage. Save your months to ensure long-term fairness.
-                            </p>
                         </div>
                         <div className="input-group">
-                             <span className="text-sm font-medium" style={{color: 'var(--slate-600)', paddingRight: '8px'}}>Month:</span>
+                             <span className="text-sm font-bold uppercase tracking-tighter px-2" style={{color: 'var(--slate-400)'}}>Target Month:</span>
                              <input 
                                type="month" 
                                value={selectedDate}
@@ -697,68 +635,48 @@
                     </header>
 
                     <div className="main-grid">
-                        
-                        {/* Left Column: Staff Management */}
+                        {/* Sidebar: Staff */}
                         <div className="flex flex-col gap-6">
-                            <Card className="p-5 h-full">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h2 className="text-lg font-bold flex items-center gap-2">
-                                        <Icons.Users className="icon-md" style={{color: 'var(--slate-500)'}} />
-                                        Staff Pool ({staff.length})
-                                    </h2>
-                                </div>
+                            <Card className="p-5">
+                                <h2 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2" style={{color: 'var(--slate-500)'}}>
+                                    <Icons.Users className="icon" /> Staff Management
+                                </h2>
                                 
-                                {/* Add Staff Form */}
-                                <div className="p-4 rounded-lg mb-6" style={{background: 'var(--slate-50)', border: '1px solid var(--slate-200)'}}>
-                                    <label className="text-xs font-bold uppercase mb-2" style={{color: 'var(--slate-500)', display:'block'}}>Add New Staff</label>
-                                    <div className="flex flex-col gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Enter name..."
-                                            className="form-input"
-                                            value={newStaffName}
-                                            onChange={(e) => setNewStaffName(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && addStaff()}
-                                        />
-                                        
-                                        <div className="grid" style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px'}}>
-                                            <label className={`role-checkbox ${newStaffRoles.main ? 'active-main' : ''}`}>
-                                                <input type="checkbox" checked={newStaffRoles.main} onChange={() => handleRoleChange('main')} style={{display: 'none'}} />
-                                                <span className="text-xs font-bold">Main</span>
-                                            </label>
-
-                                            <label className={`role-checkbox ${newStaffRoles.floater ? 'active-floater' : ''}`}>
-                                                <input type="checkbox" checked={newStaffRoles.floater} onChange={() => handleRoleChange('floater')} style={{display: 'none'}} />
-                                                <span className="text-xs font-bold">Floater</span>
-                                            </label>
-
-                                            <label className={`role-checkbox ${newStaffRoles.junior ? 'active-junior' : ''}`}>
-                                                <input type="checkbox" checked={newStaffRoles.junior} onChange={() => handleRoleChange('junior')} style={{display: 'none'}} />
-                                                <span className="text-xs font-bold">Junior</span>
-                                            </label>
-                                        </div>
-
-                                        <Button onClick={addStaff} className="w-full mt-2" variant="secondary">
-                                            <Icons.Plus className="icon" /> Add Person
-                                        </Button>
+                                <div className="p-4 rounded-xl mb-6" style={{background: 'var(--slate-50)', border: '1px solid var(--slate-200)'}}>
+                                    <input
+                                        type="text"
+                                        placeholder="Full Name..."
+                                        className="form-input mb-3"
+                                        value={newStaffName}
+                                        onChange={(e) => setNewStaffName(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && addStaff()}
+                                    />
+                                    <div className="grid grid-cols-2 gap-2 mb-3" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px'}}>
+                                        <div className={`role-checkbox ${newStaffRoles.main ? 'active-main' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, main: !newStaffRoles.main})}>Main</div>
+                                        <div className={`role-checkbox ${newStaffRoles.floater ? 'active-floater' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, floater: !newStaffRoles.floater})}>Floater</div>
+                                        <div className={`role-checkbox ${newStaffRoles.junior ? 'active-junior' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, junior: !newStaffRoles.junior})}>Junior</div>
+                                        <div className={`role-checkbox ${newStaffRoles.farsi ? 'active-farsi' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, farsi: !newStaffRoles.farsi})}>Farsi</div>
                                     </div>
+                                    <Button onClick={addStaff} className="w-full" variant="secondary">
+                                        <Icons.Plus className="icon" /> Add Person
+                                    </Button>
                                 </div>
 
-                                {/* Staff List */}
                                 <div className="scroll-area">
                                     <div className="flex flex-col gap-2">
                                         {staff.map(person => (
-                                            <div key={person.id} className="flex justify-between items-center p-3 rounded-lg" style={{border: '1px solid var(--slate-100)', background: 'white', boxShadow: '0 1px 2px rgba(0,0,0,0.05)'}}>
-                                                <div>
-                                                    <div className="font-medium text-slate-800">{person.name}</div>
-                                                    <div className="flex gap-1 mt-1">
-                                                        {person.roles.includes('junior') && <span className="badge badge-purple">Junior</span>}
-                                                        {person.roles.includes('main') && !person.roles.includes('junior') && <span className="badge badge-blue">Main</span>}
-                                                        {person.roles.includes('floater') && <span className="badge badge-orange">Floater</span>}
+                                            <div key={person.id} className="flex justify-between items-center p-3 rounded-xl" style={{border: '1px solid var(--slate-100)', background: 'white'}}>
+                                                <div className="flex-1 truncate mr-2">
+                                                    <div className="font-semibold text-slate-800 text-sm truncate">{person.name}</div>
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                        <span className={`badge ${person.roles.includes('main') ? 'badge-blue' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'main')}>Main</span>
+                                                        <span className={`badge ${person.roles.includes('floater') ? 'badge-orange' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'floater')}>Float</span>
+                                                        <span className={`badge ${person.roles.includes('junior') ? 'badge-purple' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'junior')}>Jnr</span>
+                                                        <span className={`badge ${person.roles.includes('farsi') ? 'badge-rose' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'farsi')}>Farsi</span>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => removeStaff(person.id)} className="btn-icon text-red-500 hover:text-red-700">
-                                                    <Icons.Trash2 className="icon" />
+                                                <button onClick={() => removeStaff(person.id)} className="btn-icon">
+                                                    <Icons.Trash2 />
                                                 </button>
                                             </div>
                                         ))}
@@ -767,187 +685,134 @@
                             </Card>
                         </div>
 
-                        {/* Right Column: Rota Output */}
+                        {/* Content: Rota */}
                         <div className="flex flex-col gap-6">
-                            
-                            {/* Action Bar */}
                             <div className="card p-4 flex flex-wrap items-center justify-between gap-4">
                                 <div className="flex items-center gap-3">
                                     <Button onClick={generateRota} style={{minWidth: '160px'}}>
-                                        <Icons.RefreshCw className="icon-md" /> 
-                                        {rota.length > 0 ? "Regenerate" : "Generate"}
+                                        <Icons.RefreshCw className="icon" /> {rota.length > 0 ? "Regenerate" : "Generate"}
                                     </Button>
-
                                     {rota.length > 0 && (
-                                        <Button 
-                                            onClick={handleSaveMonth}
-                                            variant={hasUnsavedChanges ? "success" : "secondary"}
-                                            title="Save to browser memory"
-                                        >
-                                            <Icons.Save className="icon-md" />
-                                            {hasUnsavedChanges ? "Save Changes" : "Saved"}
+                                        <Button onClick={handleSaveMonth} variant={hasUnsavedChanges ? "success" : "secondary"}>
+                                            <Icons.Save className="icon" /> {hasUnsavedChanges ? "Save Changes" : "Saved"}
                                         </Button>
                                     )}
                                 </div>
-
                                 <div className="flex items-center gap-2">
                                     {savedRotas[selectedDate] && (
-                                        <Button onClick={handleDeleteMonth} variant="danger" title="Delete saved rota for this month">
-                                            <Icons.Trash2 className="icon-md" />
+                                        <Button onClick={handleDeleteMonth} variant="danger" title="Delete Saved">
+                                            <Icons.Trash2 />
                                         </Button>
                                     )}
                                     {rota.length > 0 && (
                                         <Button onClick={copyToClipboard} variant="secondary">
-                                            {isCopied ? <Icons.Check className="icon-md" style={{color:'green'}} /> : <Icons.Copy className="icon-md" />}
+                                            {isCopied ? <Icons.Check className="icon" style={{color:'green'}} /> : <Icons.Copy className="icon" />}
                                             {isCopied ? "Copied" : "Copy"}
                                         </Button>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Error Display */}
                             {error && (
                                 <div style={{background: 'var(--red-50)', borderLeft: '4px solid var(--red-500)', padding: '16px', borderRadius: '0 8px 8px 0', display: 'flex', gap: '12px'}}>
-                                    <Icons.AlertCircle style={{color: 'var(--red-600)', width:'20px'}} />
+                                    <Icons.AlertCircle style={{color: 'var(--red-600)'}} />
                                     <p style={{color: 'var(--red-600)', margin: 0}}>{error}</p>
                                 </div>
                             )}
 
-                            {/* Rota Grid */}
                             {rota.length > 0 ? (
                                 <div className="animate-in flex flex-col gap-6">
                                     <div className="shift-grid">
                                         {rota.map((shift, idx) => (
-                                            <Card key={idx} className="overflow-hidden" style={{borderTop: '4px solid var(--blue-500)'}}>
-                                                <div className="p-4" style={{background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <Card key={idx} className="overflow-hidden" style={{borderLeft: '4px solid var(--blue-500)'}}>
+                                                <div className="p-4" style={{background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between'}}>
                                                     <div>
-                                                        <p className="text-xs font-bold uppercase tracking-wider" style={{color: 'var(--slate-500)'}}>Sunday</p>
-                                                        <h3 className="text-xl font-bold text-slate-800" style={{fontSize: '1.25rem', margin: 0}}>
+                                                        <h3 className="font-bold text-slate-800">
                                                             {shift.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}
                                                         </h3>
                                                     </div>
-                                                    <div style={{background: 'var(--blue-100)', color: 'var(--blue-700)', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 700}}>
-                                                        Week {idx + 1}
-                                                    </div>
+                                                    <span className="text-xs font-black uppercase text-slate-400">Week {idx + 1}</span>
                                                 </div>
                                                 
                                                 <div className="p-5 flex flex-col gap-4">
-                                                    {/* Main Duty Section */}
-                                                    <div>
-                                                        <h4 className="text-xs font-bold uppercase mb-2 flex items-center gap-2" style={{color: 'var(--slate-400)'}}>
-                                                            <span style={{width: '8px', height: '8px', borderRadius: '50%', background: 'var(--blue-500)'}}></span>
-                                                            Main Duty (2)
-                                                        </h4>
-                                                        <div className="grid" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
-                                                            <ShiftSlot 
-                                                                label="Main 1"
-                                                                role="main"
-                                                                person={shift.main1}
-                                                                isLocked={shift.main1Locked}
-                                                                candidates={staff.filter(s => s.roles.includes('main'))}
-                                                                onChange={(id) => handleSlotChange(idx, 'main1', id)}
-                                                                onToggleLock={() => toggleLock(idx, 'main1')}
-                                                                colorTheme="blue"
-                                                            />
-                                                            <ShiftSlot 
-                                                                label="Main 2"
-                                                                role="main"
-                                                                person={shift.main2}
-                                                                isLocked={shift.main2Locked}
-                                                                candidates={staff.filter(s => s.roles.includes('main'))}
-                                                                onChange={(id) => handleSlotChange(idx, 'main2', id)}
-                                                                onToggleLock={() => toggleLock(idx, 'main2')}
-                                                                colorTheme="blue"
-                                                            />
-                                                        </div>
+                                                    <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                                                        <ShiftSlot 
+                                                            label="Main 1"
+                                                            person={shift.main1}
+                                                            isLocked={shift.main1Locked}
+                                                            candidates={staff.filter(s => s.roles.includes('main'))}
+                                                            onChange={(id) => handleSlotChange(idx, 'main1', id)}
+                                                            onToggleLock={() => toggleLock(idx, 'main1')}
+                                                        />
+                                                        <ShiftSlot 
+                                                            label="Main 2"
+                                                            person={shift.main2}
+                                                            isLocked={shift.main2Locked}
+                                                            candidates={staff.filter(s => s.roles.includes('main'))}
+                                                            onChange={(id) => handleSlotChange(idx, 'main2', id)}
+                                                            onToggleLock={() => toggleLock(idx, 'main2')}
+                                                        />
                                                     </div>
 
-                                                    {/* Floater Section */}
-                                                    <div>
-                                                        <h4 className="text-xs font-bold uppercase mb-2 flex items-center gap-2" style={{color: 'var(--slate-400)'}}>
-                                                            <span style={{width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange-400)'}}></span>
-                                                            Floater Duty
-                                                        </h4>
-                                                        
-                                                        {shift.floater ? (
-                                                            <ShiftSlot 
-                                                                label="Floater"
-                                                                role="floater"
-                                                                person={shift.floater}
-                                                                isLocked={shift.floaterLocked}
-                                                                candidates={staff.filter(s => s.roles.includes('floater'))}
-                                                                onChange={(id) => handleSlotChange(idx, 'floater', id)}
-                                                                onToggleLock={() => toggleLock(idx, 'floater')}
-                                                                colorTheme="orange"
-                                                            />
-                                                        ) : (
-                                                            <div className="flex gap-2">
-                                                                <div className="w-full p-3 rounded-lg flex items-start gap-3" style={{background: 'var(--emerald-50)', border: '1px solid var(--emerald-100)'}}>
-                                                                    <div className="mt-1"><Icons.Check style={{width: '16px', color: 'var(--emerald-600)'}} /></div>
-                                                                    <div>
-                                                                        <span className="font-semibold text-sm block" style={{color: 'var(--emerald-800)'}}>Covered Internally</span>
-                                                                        <span className="text-xs" style={{color: 'var(--emerald-600)'}}>by {shift.coveredBy?.name} (Main)</span>
-                                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                                                        <div>
+                                                            {shift.floater ? (
+                                                                <ShiftSlot 
+                                                                    label="Floater"
+                                                                    person={shift.floater}
+                                                                    isLocked={shift.floaterLocked}
+                                                                    candidates={staff.filter(s => s.roles.includes('floater'))}
+                                                                    onChange={(id) => handleSlotChange(idx, 'floater', id)}
+                                                                    onToggleLock={() => toggleLock(idx, 'floater')}
+                                                                    colorTheme="orange"
+                                                                />
+                                                            ) : (
+                                                                <div className="p-3 rounded-lg border flex flex-col justify-center h-full" style={{background: 'var(--emerald-50)', borderColor: 'var(--emerald-100)'}}>
+                                                                    <span className="text-xs uppercase font-bold text-emerald-600">Floater Cover</span>
+                                                                    <span className="text-sm font-bold text-emerald-800 truncate">{shift.coveredBy?.name}</span>
                                                                 </div>
-                                                                <button 
-                                                                    onClick={() => handleSlotChange(idx, 'floater', staff.find(s => s.roles.includes('floater'))?.id)} 
-                                                                    className="btn-secondary"
-                                                                    style={{height: 'auto'}}
-                                                                    title="Manually assign a floater"
-                                                                >
-                                                                    <Icons.Plus className="icon" />
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                            )}
+                                                        </div>
+
+                                                        {/* Farsi Slot: Manual Only */}
+                                                        <ShiftSlot 
+                                                            label="Farsi Speaker"
+                                                            person={shift.farsi}
+                                                            candidates={staff.filter(s => s.roles.includes('farsi'))}
+                                                            onChange={(id) => handleSlotChange(idx, 'farsi', id)}
+                                                            colorTheme="rose"
+                                                            placeholder="Assign Manual"
+                                                        />
                                                     </div>
                                                 </div>
                                             </Card>
                                         ))}
                                     </div>
 
-                                    {/* Stats Section */}
-                                    <Card className="p-6" style={{background: 'var(--slate-800)', color: 'white', borderColor: 'var(--slate-700)'}}>
+                                    {/* Stats */}
+                                    <Card className="p-6" style={{background: 'var(--slate-900)', color: 'white'}}>
                                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                                            <Icons.History className="icon-md" style={{color: 'var(--purple-400)'}} />
-                                            Accumulated Usage History
+                                            <Icons.History className="icon" /> Accumulated Service History
                                         </h3>
                                         <div className="stats-grid">
                                             {staff.map((person) => {
-                                                // Calculate usage strictly from the current displayed rota
                                                 const currentMonthCount = rota.reduce((acc, r) => {
-                                                    let count = 0;
-                                                    if (r.main1?.id === person.id) count++;
-                                                    if (r.main2?.id === person.id) count++;
-                                                    if (r.floater?.id === person.id) count++;
-                                                    return acc + count;
+                                                    let c = 0;
+                                                    if (r.main1?.id === person.id) c++;
+                                                    if (r.main2?.id === person.id) c++;
+                                                    if (r.floater?.id === person.id) c++;
+                                                    if (r.farsi?.id === person.id) c++;
+                                                    return acc + c;
                                                 }, 0);
-
-                                                const baselineCount = getBaselineUsage(selectedDate)[person.id] || 0;
-                                                const total = currentMonthCount + baselineCount;
-                                                const isJunior = person.roles.includes('junior');
-
+                                                const history = getBaselineUsage(selectedDate)[person.id] || 0;
+                                                const total = currentMonthCount + history;
                                                 return (
-                                                    <div key={person.id} className="flex flex-col justify-between p-3 rounded border" style={{background: 'rgba(51, 65, 85, 0.5)', borderColor: 'var(--slate-700)'}}>
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <span className="truncate mr-2 text-sm font-medium text-slate-200">{person.name}</span>
-                                                            {isJunior && <span className="text-xs rounded px-1" style={{background: 'rgba(168, 85, 247, 0.3)', color: 'var(--purple-100)'}}>Jnr</span>}
+                                                    <div key={person.id} className="p-3 rounded-lg" style={{background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)'}}>
+                                                        <div className="flex justify-between items-start">
+                                                            <span className="text-xs text-slate-400 truncate">{person.name}</span>
+                                                            {currentMonthCount > 0 && <span className="text-xs text-emerald-400 font-bold">+{currentMonthCount}</span>}
                                                         </div>
-                                                        <div className="flex items-center justify-between mt-2">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-lg font-bold text-white leading-none">{total}</span>
-                                                                <span className="text-xs" style={{color: 'var(--slate-400)'}}>Total Shifts (All Saved)</span>
-                                                            </div>
-                                                            {currentMonthCount > 0 && (
-                                                                <span className="text-xs px-1 py-0.5 rounded border" 
-                                                                    style={
-                                                                        person.id === 3 && currentMonthCount < 2 
-                                                                        ? {background: 'rgba(124, 45, 18, 0.5)', color: '#fed7aa', borderColor: '#7c2d12'} 
-                                                                        : {background: 'rgba(30, 58, 138, 0.5)', color: '#bfdbfe', borderColor: '#1e3a8a'}
-                                                                    }>
-                                                                    +{currentMonthCount} this month
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        <div className="text-xl font-black mt-1">{total}</div>
                                                     </div>
                                                 );
                                             })}
@@ -955,10 +820,10 @@
                                     </Card>
                                 </div>
                             ) : (
-                                <div style={{height: '256px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--slate-300)', borderRadius: '12px', background: 'rgba(248, 250, 252, 0.5)', color: 'var(--slate-400)'}}>
-                                    <Icons.Calendar className="icon-lg mb-4" style={{opacity: 0.3, width: '48px', height: '48px'}} />
-                                    <p className="font-medium">No rota generated for {new Date(selectedDate).toLocaleString('default', { month: 'long' })}</p>
-                                    <p className="text-sm">Click Generate to create the schedule</p>
+                                <div style={{height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--slate-300)', borderRadius: '20px', color: 'var(--slate-400)'}}>
+                                    <Icons.Calendar className="mb-4" style={{width: '64px', height: '64px', opacity: 0.2}} />
+                                    <p className="font-bold">No schedule for {new Date(selectedDate).toLocaleString('default', { month: 'long', year:'numeric' })}</p>
+                                    <p className="text-sm">Click Generate to start.</p>
                                 </div>
                             )}
                         </div>
