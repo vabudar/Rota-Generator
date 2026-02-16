@@ -41,6 +41,7 @@
             --purple-50: #faf5ff;
             --purple-100: #f3e8ff;
             --purple-400: #c084fc;
+            --purple-500: #a855f7;
             --purple-600: #9333ea;
 
             --emerald-50: #ecfdf5;
@@ -56,6 +57,10 @@
             --red-100: #fee2e2;
             --red-500: #ef4444;
             --red-600: #dc2626;
+
+            --indigo-50: #eef2ff;
+            --indigo-100: #e0e7ff;
+            --indigo-600: #4f46e5;
         }
 
         * { box-sizing: border-box; }
@@ -179,6 +184,8 @@
         .role-checkbox.active-floater { background: var(--orange-50); border-color: var(--orange-200); color: var(--orange-600); }
         .role-checkbox.active-junior { background: var(--purple-50); border-color: var(--purple-200); color: var(--purple-600); }
         .role-checkbox.active-farsi { background: var(--rose-50); border-color: var(--rose-100); color: var(--rose-600); }
+        .role-checkbox.active-prayer-lead { background: var(--indigo-50); border-color: var(--indigo-100); color: var(--indigo-600); }
+        .role-checkbox.active-prayer-helper { background: var(--slate-100); border-color: var(--slate-300); color: var(--slate-800); }
 
         /* Layout Grid */
         .main-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
@@ -234,6 +241,10 @@
         .theme-rose.locked { background: var(--rose-100); border-color: var(--rose-600); }
         .theme-rose .icon { color: var(--rose-600); }
 
+        .theme-purple { background: var(--purple-50); border-color: var(--purple-100); }
+        .theme-purple.locked { background: var(--purple-100); border-color: var(--purple-500); }
+        .theme-purple .icon { color: var(--purple-500); }
+
         /* Badges */
         .badge { 
             font-size: 10px; 
@@ -249,6 +260,7 @@
         .badge-blue { background: var(--blue-50); color: var(--blue-600); border-color: var(--blue-100); }
         .badge-orange { background: var(--orange-50); color: var(--orange-600); border-color: var(--orange-100); }
         .badge-rose { background: var(--rose-50); color: var(--rose-600); border-color: var(--rose-100); }
+        .badge-indigo { background: var(--indigo-50); color: var(--indigo-600); border-color: var(--indigo-100); }
         .badge-gray { background: var(--slate-50); color: var(--slate-400); border-color: var(--slate-200); }
 
         /* Animation */
@@ -285,7 +297,8 @@
             Lock: ({size}) => <svg className="icon" style={{width: size, height: size}} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
             Unlock: ({size}) => <svg className="icon" style={{width: size, height: size}} viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>,
             Save: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
-            Languages: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+            Languages: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>,
+            Users2: ({className}) => <svg className={`icon ${className}`} viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         };
 
         const { useState, useEffect } = React;
@@ -342,19 +355,19 @@
         function RotaGenerator() {
             // State
             const [staff, setStaff] = useState([
-                { id: 1, name: 'Ver-se Abudar', roles: ['floater', 'farsi'] },
-                { id: 2, name: 'Tim Groves', roles: ['floater'] },
-                { id: 3, name: 'Andy Baxter', roles: ['main', 'floater'] },
-                { id: 4, name: 'Izzy Ross', roles: ['main', 'junior'] },
-                { id: 5, name: 'Titi Obawole', roles: ['main', 'junior'] },
-                { id: 6, name: 'Chibueze Okpara', roles: ['main', 'junior'] },
-                { id: 7, name: 'Simon McClure', roles: ['main'] },
-                { id: 8, name: 'Neil Harper', roles: ['main'] },
-                { id: 9, name: 'Jonathan Palmer', roles: ['main', 'junior'] },
+                { id: 1, name: 'Ver-se Abudar', roles: ['floater', 'farsi', 'prayerLead'] },
+                { id: 2, name: 'Tim Groves', roles: ['floater', 'prayerLead'] },
+                { id: 3, name: 'Andy Baxter', roles: ['main', 'floater', 'prayerLead'] },
+                { id: 4, name: 'Izzy Ross', roles: ['main', 'junior', 'prayerHelper'] },
+                { id: 5, name: 'Titi Obawole', roles: ['main', 'junior', 'prayerHelper'] },
+                { id: 6, name: 'Chibueze Okpara', roles: ['main', 'junior', 'prayerHelper'] },
+                { id: 7, name: 'Simon McClure', roles: ['main', 'prayerLead'] },
+                { id: 8, name: 'Neil Harper', roles: ['main', 'prayerLead'] },
+                { id: 9, name: 'Jonathan Palmer', roles: ['main', 'junior', 'prayerHelper'] },
             ]);
             
             const [newStaffName, setNewStaffName] = useState('');
-            const [newStaffRoles, setNewStaffRoles] = useState({ main: true, floater: false, junior: false, farsi: false });
+            const [newStaffRoles, setNewStaffRoles] = useState({ main: true, floater: false, junior: false, farsi: false, prayerLead: false, prayerHelper: false });
             const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
             const [rota, setRota] = useState([]);
             const [savedRotas, setSavedRotas] = useState({});
@@ -363,14 +376,14 @@
             const [isCopied, setIsCopied] = useState(false);
 
             useEffect(() => {
-                const savedData = localStorage.getItem('sunday-rota-v2');
-                const savedStaff = localStorage.getItem('sunday-staff-v2');
+                const savedData = localStorage.getItem('sunday-rota-v3');
+                const savedStaff = localStorage.getItem('sunday-staff-v3');
                 if (savedData) setSavedRotas(JSON.parse(savedData));
                 if (savedStaff) setStaff(JSON.parse(savedStaff));
             }, []);
 
             useEffect(() => {
-                localStorage.setItem('sunday-staff-v2', JSON.stringify(staff));
+                localStorage.setItem('sunday-staff-v3', JSON.stringify(staff));
             }, [staff]);
 
             useEffect(() => {
@@ -385,15 +398,15 @@
                 }
             }, [selectedDate, savedRotas]);
 
-            const getSundaysInMonth = (year, month) => {
+            const getDatesInMonth = (year, month, dayOfWeek) => {
                 const date = new Date(year, month - 1, 1);
-                const sundays = [];
-                while (date.getDay() !== 0) date.setDate(date.getDate() + 1);
+                const dates = [];
+                while (date.getDay() !== dayOfWeek) date.setDate(date.getDate() + 1);
                 while (date.getMonth() === month - 1) {
-                    sundays.push(new Date(date));
+                    dates.push(new Date(date));
                     date.setDate(date.getDate() + 7);
                 }
-                return sundays;
+                return dates;
             };
 
             const getBaselineUsage = (currentMonthKey) => {
@@ -406,6 +419,8 @@
                             if (r.main2) baseline[r.main2.id] = (baseline[r.main2.id] || 0) + 1;
                             if (r.floater) baseline[r.floater.id] = (baseline[r.floater.id] || 0) + 1;
                             if (r.farsi) baseline[r.farsi.id] = (baseline[r.farsi.id] || 0) + 1;
+                            if (r.prayerLead) baseline[r.prayerLead.id] = (baseline[r.prayerLead.id] || 0) + 1;
+                            if (r.prayerHelper) baseline[r.prayerHelper.id] = (baseline[r.prayerHelper.id] || 0) + 1;
                         });
                     }
                 });
@@ -416,7 +431,7 @@
                 if (rota.length === 0) return;
                 const newSaved = { ...savedRotas, [selectedDate]: rota };
                 setSavedRotas(newSaved);
-                localStorage.setItem('sunday-rota-v2', JSON.stringify(newSaved));
+                localStorage.setItem('sunday-rota-v3', JSON.stringify(newSaved));
                 setHasUnsavedChanges(false);
             };
 
@@ -425,7 +440,7 @@
                 const newSaved = { ...savedRotas };
                 delete newSaved[selectedDate];
                 setSavedRotas(newSaved);
-                localStorage.setItem('sunday-rota-v2', JSON.stringify(newSaved));
+                localStorage.setItem('sunday-rota-v3', JSON.stringify(newSaved));
                 setRota([]);
             };
 
@@ -433,7 +448,6 @@
                 const newRota = [...rota];
                 const shift = { ...newRota[shiftIndex] };
                 
-                // Update the specific slot
                 if (slotKey === 'floater' && staffId === -1) {
                     shift.floater = null;
                 } else {
@@ -441,17 +455,14 @@
                     shift[slotKey] = person || null;
                 }
 
-                // Dynamic cover re-calculation for the Floater slot
-                if (!shift.floater) {
-                    const m1F = shift.main1?.roles.includes('floater');
-                    const m2F = shift.main2?.roles.includes('floater');
-                    if (m1F || m2F) {
-                        shift.coveredBy = m1F ? shift.main1 : shift.main2;
+                if (shift.type === 'sunday') {
+                    if (!shift.floater) {
+                        const m1F = shift.main1?.roles.includes('floater');
+                        const m2F = shift.main2?.roles.includes('floater');
+                        shift.coveredBy = m1F ? shift.main1 : (m2F ? shift.main2 : null);
                     } else {
-                        shift.coveredBy = null; // Unassigned
+                        shift.coveredBy = null;
                     }
-                } else {
-                    shift.coveredBy = null; // Has a dedicated floater
                 }
                 
                 newRota[shiftIndex] = shift;
@@ -486,19 +497,20 @@
             const generateRota = () => {
                 setError(null);
                 const [year, month] = selectedDate.split('-').map(Number);
-                const sundays = getSundaysInMonth(year, month);
+                const sundays = getDatesInMonth(year, month, 0).map(d => ({ date: d, type: 'sunday' }));
+                const wednesdays = getDatesInMonth(year, month, 3).map(d => ({ date: d, type: 'wednesday' }));
+                const allDates = [...sundays, ...wednesdays].sort((a, b) => a.date - b.date);
+
                 const baselineUsage = getBaselineUsage(selectedDate);
                 
                 let bestResult = null;
                 let bestStdDev = Infinity;
-                const currentRotaState = rota.length === sundays.length ? rota : [];
+                const currentRotaState = rota.length === allDates.length ? rota : [];
 
                 for (let i = 0; i < 50; i++) {
                     try {
-                        const result = attemptGenerate(sundays, baselineUsage, currentRotaState);
-                        const juniors = staff.filter(s => s.roles.includes('junior'));
-                        const constraintsMet = juniors.every(j => result.usage[j.id] >= 1);
-
+                        const result = attemptGenerate(allDates, baselineUsage, currentRotaState);
+                        
                         const totalUsage = { ...baselineUsage };
                         Object.entries(result.usage).forEach(([id, count]) => totalUsage[id] = (totalUsage[id] || 0) + count);
                         const values = Object.values(totalUsage);
@@ -506,7 +518,7 @@
                         const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
                         const stdDev = Math.sqrt(variance);
 
-                        if (!bestResult || (constraintsMet && stdDev < bestStdDev)) {
+                        if (!bestResult || stdDev < bestStdDev) {
                             bestResult = result;
                             bestStdDev = stdDev;
                         }
@@ -517,72 +529,83 @@
                     setRota(bestResult.rota);
                     setHasUnsavedChanges(true);
                 } else {
-                    setError("Locked slots caused a conflict. Try unlocking some slots.");
+                    setError("Could not generate valid schedule. Try unlocking some slots.");
                 }
             };
 
-            const attemptGenerate = (sundays, baselineUsage, currentRota) => {
+            const attemptGenerate = (allDates, baselineUsage, currentRota) => {
                 const usage = {};
                 staff.forEach(s => usage[s.id] = 0);
                 const tempRota = [];
 
                 const getScore = (person) => {
                     const total = (baselineUsage[person.id] || 0) + usage[person.id];
-                    let score = total * 100; 
-                    if (person.roles.includes('junior') && usage[person.id] < 1) score -= 1000;
-                    score += Math.random() * 50;
+                    let score = total * 100 + Math.random() * 50;
+                    if (person.roles.includes('junior') && usage[person.id] < 1) score -= 500;
                     return score;
                 };
 
-                sundays.forEach((sunday, idx) => {
+                allDates.forEach((entry, idx) => {
                     const existing = currentRota[idx];
-                    const isSameDate = existing && existing.date.getDate() === sunday.getDate();
+                    const isSameDate = existing && existing.date.getTime() === entry.date.getTime();
                     
-                    const lockedMain1 = (isSameDate && existing.main1Locked) ? existing.main1 : null;
-                    const lockedMain2 = (isSameDate && existing.main2Locked) ? existing.main2 : null;
-                    const lockedFloater = (isSameDate && existing.floaterLocked) ? existing.floater : null;
-                    const isFloaterLocked = isSameDate && existing.floaterLocked;
+                    if (entry.type === 'sunday') {
+                        const lockedMain1 = (isSameDate && existing.main1Locked) ? existing.main1 : null;
+                        const lockedMain2 = (isSameDate && existing.main2Locked) ? existing.main2 : null;
+                        const lockedFloater = (isSameDate && existing.floaterLocked) ? existing.floater : null;
+                        const isFloaterLocked = isSameDate && existing.floaterLocked;
 
-                    let main1 = lockedMain1;
-                    if (!main1) {
-                        const avail = staff.filter(s => s.roles.includes('main') && s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
-                        avail.sort((a, b) => getScore(a) - getScore(b));
-                        main1 = avail[0];
-                    }
-                    if (main1) usage[main1.id]++;
-
-                    let main2 = lockedMain2;
-                    if (!main2) {
-                        const avail = staff.filter(s => s.roles.includes('main') && s.id !== main1?.id && s.id !== lockedFloater?.id);
-                        avail.sort((a, b) => getScore(a) - getScore(b));
-                        main2 = avail[0];
-                    }
-                    if (main2) usage[main2.id]++;
-
-                    let floater = lockedFloater;
-                    let coveredBy = null;
-                    if (!isFloaterLocked) {
-                        const m1F = main1?.roles.includes('floater');
-                        const m2F = main2?.roles.includes('floater');
-                        if (m1F || m2F) {
-                            coveredBy = m1F ? main1 : main2;
-                            floater = null;
-                        } else {
-                            const avail = staff.filter(s => s.roles.includes('floater') && s.id !== main1?.id && s.id !== main2?.id);
+                        let main1 = lockedMain1;
+                        if (!main1) {
+                            const avail = staff.filter(s => s.roles.includes('main') && s.id !== lockedMain2?.id && s.id !== lockedFloater?.id);
                             avail.sort((a, b) => getScore(a) - getScore(b));
-                            floater = avail[0];
+                            main1 = avail[0];
                         }
-                    }
-                    if (floater) usage[floater.id]++;
+                        if (main1) usage[main1.id]++;
 
-                    tempRota.push({
-                        date: sunday,
-                        main1, main2, floater, coveredBy,
-                        farsi: isSameDate ? existing.farsi : null,
-                        main1Locked: !!lockedMain1,
-                        main2Locked: !!lockedMain2,
-                        floaterLocked: isFloaterLocked
-                    });
+                        let main2 = lockedMain2;
+                        if (!main2) {
+                            const avail = staff.filter(s => s.roles.includes('main') && s.id !== main1?.id && s.id !== lockedFloater?.id);
+                            avail.sort((a, b) => getScore(a) - getScore(b));
+                            main2 = avail[0];
+                        }
+                        if (main2) usage[main2.id]++;
+
+                        let floater = lockedFloater;
+                        let coveredBy = null;
+                        if (!isFloaterLocked) {
+                            const m1F = main1?.roles.includes('floater');
+                            const m2F = main2?.roles.includes('floater');
+                            if (m1F || m2F) {
+                                coveredBy = m1F ? main1 : main2;
+                                floater = null;
+                            } else {
+                                const avail = staff.filter(s => s.roles.includes('floater') && s.id !== main1?.id && s.id !== main2?.id);
+                                avail.sort((a, b) => getScore(a) - getScore(b));
+                                floater = avail[0];
+                            }
+                        }
+                        if (floater) usage[floater.id]++;
+
+                        tempRota.push({
+                            ...entry,
+                            main1, main2, floater, coveredBy,
+                            farsi: isSameDate ? existing.farsi : null,
+                            main1Locked: !!lockedMain1,
+                            main2Locked: !!lockedMain2,
+                            floaterLocked: isFloaterLocked
+                        });
+                    } else {
+                        // Wednesday - Manual Only as per user request
+                        // Preservation logic: if it's the same date, keep what was there manually
+                        tempRota.push({
+                            ...entry,
+                            prayerLead: isSameDate ? existing.prayerLead : null,
+                            prayerHelper: isSameDate ? existing.prayerHelper : null,
+                            prayerLeadLocked: isSameDate ? !!existing.prayerLeadLocked : false,
+                            prayerHelperLocked: isSameDate ? !!existing.prayerHelperLocked : false
+                        });
+                    }
                 });
 
                 return { rota: tempRota, usage };
@@ -591,14 +614,13 @@
             const addStaff = () => {
                 if (!newStaffName.trim()) return;
                 const roles = [];
-                if (newStaffRoles.main) roles.push('main');
-                if (newStaffRoles.floater) roles.push('floater');
-                if (newStaffRoles.junior) roles.push('junior');
-                if (newStaffRoles.farsi) roles.push('farsi');
+                Object.entries(newStaffRoles).forEach(([role, active]) => {
+                    if (active) roles.push(role);
+                });
                 
                 setStaff([...staff, { id: Date.now(), name: newStaffName, roles }]);
                 setNewStaffName('');
-                setNewStaffRoles({ main: true, floater: false, junior: false, farsi: false });
+                setNewStaffRoles({ main: true, floater: false, junior: false, farsi: false, prayerLead: false, prayerHelper: false });
             };
 
             const removeStaff = (id) => {
@@ -609,10 +631,14 @@
                 if (!rota.length) return;
                 const text = rota.map(r => {
                     const dateStr = r.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                    const dutyText = `${r.main1?.name} & ${r.main2?.name}`;
-                    const floatText = r.floater ? `+ Floater: ${r.floater.name}` : `(Cover by ${r.coveredBy?.name || 'Internal'})`;
-                    const farsiText = r.farsi ? ` | Farsi: ${r.farsi.name}` : '';
-                    return `${dateStr}: ${dutyText} ${floatText}${farsiText}`;
+                    if (r.type === 'sunday') {
+                        const dutyText = `${r.main1?.name || '?'} & ${r.main2?.name || '?'}`;
+                        const floatText = r.floater ? `+ Floater: ${r.floater.name}` : `(Cover by ${r.coveredBy?.name || 'Internal'})`;
+                        const farsiText = r.farsi ? ` | Farsi: ${r.farsi.name}` : '';
+                        return `${dateStr} (Sun): ${dutyText} ${floatText}${farsiText}`;
+                    } else {
+                        return `${dateStr} (Wed): Lead: ${r.prayerLead?.name || '?'} | Helper: ${r.prayerHelper?.name || '?'}`;
+                    }
                 }).join('\n');
                 
                 const textArea = document.createElement("textarea");
@@ -629,7 +655,7 @@
                         <div>
                             <h1 className="flex items-center gap-2" style={{fontSize: '1.8rem', fontWeight: 900, color: 'var(--slate-900)'}}>
                                 <Icons.Calendar className="icon icon-lg" style={{color: 'var(--blue-600)'}} />
-                                Sunday Rota Pro
+                                Sunday & Wednesday Rota
                             </h1>
                         </div>
                         <div className="input-group">
@@ -665,6 +691,8 @@
                                         <div className={`role-checkbox ${newStaffRoles.floater ? 'active-floater' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, floater: !newStaffRoles.floater})}>Floater</div>
                                         <div className={`role-checkbox ${newStaffRoles.junior ? 'active-junior' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, junior: !newStaffRoles.junior})}>Junior</div>
                                         <div className={`role-checkbox ${newStaffRoles.farsi ? 'active-farsi' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, farsi: !newStaffRoles.farsi})}>Farsi</div>
+                                        <div className={`role-checkbox ${newStaffRoles.prayerLead ? 'active-prayer-lead' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, prayerLead: !newStaffRoles.prayerLead})}>P.Lead</div>
+                                        <div className={`role-checkbox ${newStaffRoles.prayerHelper ? 'active-prayer-helper' : ''}`} onClick={() => setNewStaffRoles({...newStaffRoles, prayerHelper: !newStaffRoles.prayerHelper})}>P.Helper</div>
                                     </div>
                                     <Button onClick={addStaff} className="w-full" variant="secondary">
                                         <Icons.Plus className="icon" /> Add Person
@@ -681,7 +709,8 @@
                                                         <span className={`badge ${person.roles.includes('main') ? 'badge-blue' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'main')}>Main</span>
                                                         <span className={`badge ${person.roles.includes('floater') ? 'badge-orange' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'floater')}>Float</span>
                                                         <span className={`badge ${person.roles.includes('junior') ? 'badge-purple' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'junior')}>Jnr</span>
-                                                        <span className={`badge ${person.roles.includes('farsi') ? 'badge-rose' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'farsi')}>Farsi</span>
+                                                        <span className={`badge ${person.roles.includes('prayerLead') ? 'badge-indigo' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'prayerLead')}>P.L</span>
+                                                        <span className={`badge ${person.roles.includes('prayerHelper') ? 'badge-gray' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'prayerHelper')}>P.H</span>
                                                     </div>
                                                 </div>
                                                 <button onClick={() => removeStaff(person.id)} className="btn-icon">
@@ -732,58 +761,81 @@
                                 <div className="animate-in flex flex-col gap-6">
                                     <div className="shift-grid">
                                         {rota.map((shift, idx) => (
-                                            <Card key={idx} className="overflow-hidden" style={{borderLeft: '4px solid var(--blue-500)'}}>
+                                            <Card key={idx} className="overflow-hidden" style={{borderLeft: `4px solid ${shift.type === 'sunday' ? 'var(--blue-500)' : 'var(--purple-500)'}`}}>
                                                 <div className="p-4" style={{background: 'var(--slate-50)', borderBottom: '1px solid var(--slate-100)', display: 'flex', justifyContent: 'space-between'}}>
                                                     <div>
                                                         <h3 className="font-bold text-slate-800">
-                                                            {shift.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}
+                                                            {shift.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', weekday: 'long' })}
                                                         </h3>
                                                     </div>
-                                                    <span className="text-xs font-black uppercase text-slate-400">Week {idx + 1}</span>
+                                                    <span className="text-xs font-black uppercase text-slate-400">
+                                                        {shift.type === 'sunday' ? 'Sunday Service' : 'Wednesday Prayer'}
+                                                    </span>
                                                 </div>
                                                 
                                                 <div className="p-5 flex flex-col gap-4">
-                                                    <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-                                                        <ShiftSlot 
-                                                            label="Main 1"
-                                                            person={shift.main1}
-                                                            isLocked={shift.main1Locked}
-                                                            candidates={staff.filter(s => s.roles.includes('main'))}
-                                                            onChange={(id) => handleSlotChange(idx, 'main1', id)}
-                                                            onToggleLock={() => toggleLock(idx, 'main1')}
-                                                        />
-                                                        <ShiftSlot 
-                                                            label="Main 2"
-                                                            person={shift.main2}
-                                                            isLocked={shift.main2Locked}
-                                                            candidates={staff.filter(s => s.roles.includes('main'))}
-                                                            onChange={(id) => handleSlotChange(idx, 'main2', id)}
-                                                            onToggleLock={() => toggleLock(idx, 'main2')}
-                                                        />
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
-                                                        <ShiftSlot 
-                                                            label="Floater"
-                                                            person={shift.floater}
-                                                            displayValue={!shift.floater && shift.coveredBy ? "-1" : (shift.floater?.id || "")}
-                                                            subtitle={!shift.floater && shift.coveredBy ? `By ${shift.coveredBy.name}` : ""}
-                                                            isLocked={shift.floaterLocked}
-                                                            candidates={staff.filter(s => s.roles.includes('floater'))}
-                                                            onChange={(id) => handleSlotChange(idx, 'floater', id)}
-                                                            onToggleLock={() => toggleLock(idx, 'floater')}
-                                                            colorTheme={!shift.floater && shift.coveredBy ? "emerald" : "orange"}
-                                                        />
-                                                        
-                                                        <ShiftSlot 
-                                                            label="Farsi Speaker"
-                                                            person={shift.farsi}
-                                                            candidates={staff.filter(s => s.roles.includes('farsi'))}
-                                                            onChange={(id) => handleSlotChange(idx, 'farsi', id)}
-                                                            colorTheme="rose"
-                                                            placeholder="Assign Manual"
-                                                        />
-                                                    </div>
+                                                    {shift.type === 'sunday' ? (
+                                                        <React.Fragment>
+                                                            <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                                                                <ShiftSlot 
+                                                                    label="Main 1"
+                                                                    person={shift.main1}
+                                                                    isLocked={shift.main1Locked}
+                                                                    candidates={staff.filter(s => s.roles.includes('main'))}
+                                                                    onChange={(id) => handleSlotChange(idx, 'main1', id)}
+                                                                    onToggleLock={() => toggleLock(idx, 'main1')}
+                                                                />
+                                                                <ShiftSlot 
+                                                                    label="Main 2"
+                                                                    person={shift.main2}
+                                                                    isLocked={shift.main2Locked}
+                                                                    candidates={staff.filter(s => s.roles.includes('main'))}
+                                                                    onChange={(id) => handleSlotChange(idx, 'main2', id)}
+                                                                    onToggleLock={() => toggleLock(idx, 'main2')}
+                                                                />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                                                                <ShiftSlot 
+                                                                    label="Floater"
+                                                                    person={shift.floater}
+                                                                    displayValue={!shift.floater && shift.coveredBy ? "-1" : (shift.floater?.id || "")}
+                                                                    subtitle={!shift.floater && shift.coveredBy ? `By ${shift.coveredBy.name}` : ""}
+                                                                    isLocked={shift.floaterLocked}
+                                                                    candidates={staff.filter(s => s.roles.includes('floater'))}
+                                                                    onChange={(id) => handleSlotChange(idx, 'floater', id)}
+                                                                    onToggleLock={() => toggleLock(idx, 'floater')}
+                                                                    colorTheme={!shift.floater && shift.coveredBy ? "emerald" : "orange"}
+                                                                />
+                                                                <ShiftSlot 
+                                                                    label="Farsi Speaker"
+                                                                    person={shift.farsi}
+                                                                    candidates={staff.filter(s => s.roles.includes('farsi'))}
+                                                                    onChange={(id) => handleSlotChange(idx, 'farsi', id)}
+                                                                    colorTheme="rose"
+                                                                    placeholder="Assign Manual"
+                                                                />
+                                                            </div>
+                                                        </React.Fragment>
+                                                    ) : (
+                                                        <div className="grid grid-cols-2 gap-3" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px'}}>
+                                                            <ShiftSlot 
+                                                                label="Prayer Meeting Lead"
+                                                                person={shift.prayerLead}
+                                                                candidates={staff.filter(s => s.roles.includes('prayerLead'))}
+                                                                onChange={(id) => handleSlotChange(idx, 'prayerLead', id)}
+                                                                colorTheme="purple"
+                                                                placeholder="Assign Manual"
+                                                            />
+                                                            <ShiftSlot 
+                                                                label="Prayer Meeting Helper"
+                                                                person={shift.prayerHelper}
+                                                                candidates={staff.filter(s => s.roles.includes('prayerHelper'))}
+                                                                onChange={(id) => handleSlotChange(idx, 'prayerHelper', id)}
+                                                                colorTheme="purple"
+                                                                placeholder="Assign Manual"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </Card>
                                         ))}
@@ -801,6 +853,8 @@
                                                     if (r.main2?.id === person.id) c++;
                                                     if (r.floater?.id === person.id) c++;
                                                     if (r.farsi?.id === person.id) c++;
+                                                    if (r.prayerLead?.id === person.id) c++;
+                                                    if (r.prayerHelper?.id === person.id) c++;
                                                     return acc + c;
                                                 }, 0);
                                                 const history = getBaselineUsage(selectedDate)[person.id] || 0;
