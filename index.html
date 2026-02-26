@@ -709,8 +709,11 @@
                                                         <span className={`badge ${person.roles.includes('main') ? 'badge-blue' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'main')}>Main</span>
                                                         <span className={`badge ${person.roles.includes('floater') ? 'badge-orange' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'floater')}>Float</span>
                                                         <span className={`badge ${person.roles.includes('junior') ? 'badge-purple' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'junior')}>Jnr</span>
+                                                        {/* Added Farsi Toggle */}
+                                                        <span className={`badge ${person.roles.includes('farsi') ? 'badge-rose' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'farsi')}>Farsi</span>
                                                         <span className={`badge ${person.roles.includes('prayerLead') ? 'badge-indigo' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'prayerLead')}>P.L</span>
-                                                        <span className={`badge ${person.roles.includes('prayerHelper') ? 'badge-gray' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'prayerHelper')}>P.H</span>
+                                                        {/* Fixed P.H Toggle Logic and Color */}
+                                                        <span className={`badge ${person.roles.includes('prayerHelper') ? 'badge-slate' : 'badge-gray'}`} onClick={() => toggleStaffRole(person.id, 'prayerHelper')}>P.H</span>
                                                     </div>
                                                 </div>
                                                 <button onClick={() => removeStaff(person.id)} className="btn-icon">
